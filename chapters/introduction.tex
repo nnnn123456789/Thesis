@@ -1,0 +1,179 @@
+
+\chapter{Introduction}
+
+
+
+
+\section{Research Background}
+Parabolic differential equations are such type of partial differential equations, 
+that are equations involving unknown functions of several variables and their partial derivatives. These equations play a crucial role in many areas of science, including physics, engineering, and economics.
+
+The history of parabolic differential equations is deeply intertwined with the development of calculus and the mathematical analysis of physical phenomena. The concept of a differential equation itself dates back to the work of Isaac Newton and Gottfried Leibniz in the 17th century, who invented calculus as a tool for describing the motion of objects under the influence of forces. However, the specific study of parabolic differential equations as a distinct class of problems began in the 19th century.
+
+Parabolic differential equations are used to model a wide range of phenomena in various fields. In physics, they are used to describe heat conduction, diffusion processes, and the behavior of semiconductors. In finance, they are used in the Black-Scholes model for option pricing. In biology, they are used to model population dynamics and the spread of diseases.
+
+Moreover, the study of parabolic differential equations has led to many important concepts and techniques in mathematics. For example, the method of separation of variables, a common technique for solving these equations, is a fundamental tool in mathematical analysis. The theory of parabolic equations also plays a key role in the study of stochastic processes and Brownian motion.
+
+Parabolic differential equations are a central topic in mathematical analysis and applied mathematics. They have a rich history and continue to be an active area of research, with many challenging problems and applications.
+
+Phase field models are mathematical models used in physics, materials science, and other fields to describe the evolution of complex microstructures. They are particularly useful for problems involving phase transitions, such as the solidification of a liquid or the formation of crystals in a solution.
+
+The phase field approach was first introduced in the late 20th century as a way to overcome the difficulties associated with traditional methods for modeling phase transitions. Traditional methods often involve sharp interfaces between different phases, which can be difficult to handle mathematically and computationally. In contrast, the phase field approach treats the interfaces as diffuse regions and describes the microstructure using a continuous field variable, which simplifies the mathematical and computational treatment.
+
+Phase field models have been used to study a wide range of phenomena, including crystal growth, grain boundary motion, and pattern formation in alloys. They have also been applied in other areas such as fluid dynamics, image processing, and tumor growth modeling.
+
+In a phase field model, the microstructure is described by a phase field variable that varies continuously from one phase to another. The evolution of the phase field is governed by a set of partial differential equations, which can be derived from the principles of thermodynamics and kinetics. These equations can be solved numerically using various computational methods.
+
+The structure-preserving algorithm is a numerical method used in the field of computational mathematics and physics. It is designed to preserve the inherent geometric or physical properties of the problem being solved. The concept of structure preservation is crucial in many scientific and engineering applications, such as molecular dynamics, fluid dynamics, and electromagnetism, where the preservation of certain properties (e.g., energy, momentum, or symplectic structure) is essential for the physical relevance and accuracy of the solution.
+
+
+The structure-preserving algorithm is based on the principle of preserving the inherent structure of the mathematical model during the numerical computation. This is in contrast to traditional numerical methods, which often focus on minimizing the approximation error without considering the preservation of the underlying structure.
+
+The structure-preserving algorithm can be classified into several types, depending on the specific structure to be preserved. For instance, energy-preserving algorithms are designed to preserve the total energy of the system, which is crucial in many physical problems. Similarly, mass preserving algorithms are designed to preserve the total mass of specific systems, which is essential for long-term numerical stability and accuracy.
+
+The structure-preserving algorithm has been successfully applied in various fields, including molecular dynamics, fluid dynamics, electromagnetism, and general relativity. It has been shown to provide more accurate and physically relevant solutions than traditional numerical methods, especially for long-term simulations and highly nonlinear problems.
+
+\section{Literature Review}
+
+It is a long story for people to solve PDEs numerically. 
+For parabolic PDEs, especially time evolution equations, 
+since the time goes, we would like to compute the state at each time level one by one, 
+and use the current and previous states to approximate the future states. 
+
+The Forward Euler Method is maybe the simplest method for solving parabolic PDEs. It involves directly computing the solution at a future time step based on the solution at the current time step. However, it has a stability condition that the time step must be less than a certain value, based on the spacial mesh size, which can make it inefficient for large problems, 
+where the problems are fixed in Implicit Euler Method. 
+However, both of them are only first order. 
+Crank-Nicolson Method involves computing 
+the solution at a future time step based on the average 
+of the solutions at the current and future time steps, 
+which makes a second order scheme. 
+It has the stability of the implicit method and the simplicity 
+of the explicit method, making it a popular choice for many problems.
+
+To get a higher convergence order, people may choose different ways. 
+We all know that a higher order quadrature often needs more quadrature points, 
+so we can take previous steps included to build a high order scheme. 
+The Backward Differentiation Formulas (BDF) methods are implicit methods 
+in which we discretize the time derivatives. The BDF methods 
+can be at most sixth order accuracy, based on the problems. 
+Another famous one, the Adams--Bashforth methods are explicit methods, 
+designed by John Couch Adams to solve a differential equation. 
+In Adams--Bashforth methods, 
+the integration on source term is quadratured, thus it can also be high order. 
+
+Another popular way to get a high order scheme is to build a single-step method. 
+One of the most important single step methods is Runge--Kutta Methods. 
+
+The Runge--Kutta methods are a family of implicit and explicit 
+iterative methods, used in temporal discretization for the approximate solutions of 
+simultaneous nonlinear equations. 
+These methods were developed around 1900 
+by the German mathematicians Carl Runge and Wilhelm Kutta.
+Since the work of Runge and Kutta, 
+many variations and extensions of the Runge--Kutta method have been 
+developed. 
+These include the implicit Runge--Kutta methods, 
+which are suitable for stiff ODEs and PDEs; 
+the adaptive Runge--Kutta methods, which adjust the time step size 
+to control the error, and implicit-explicit Runge--Kutta methods, 
+which divids the dynamics to two parts and compute them separately. 
+Unlike the multi-step method, we may need to solve a hugh system to get the result, 
+but some structures or properties are always better in single-step methods, 
+like postprocessings. 
+
+The development and analysis of MBP method have been intensively studied in existing references.
+It was proved in \cite{tangyang1,ShenTangYang:2016} that the stabilized semi-implicit Euler time-stepping scheme,
+with central difference method in space, preserves the maximum principle unconditionally
+if the stabilizer satisfies certain restrictions. In \cite{DuJuLiQiao:2019},
+a stabilized exponential time differencing scheme was proposed for solving the (nonlocal) Allen--Cahn equation,
+and the scheme was proved to be unconditionally MBP. See also \cite{DuJuLiQiao:2020}
+for the generalization to a class of semilinear parabolic equations.
+
+High-order strong stability preserving (SSP) time-stepping methods are widely used
+in the development of MBP scheme for both parabolic equations and hyperbolic equations (see e.g.,  
+\cite{gottlieb1998total,Liu-Yu-2014,GottliebShuTadmor:2001,gottlieb2011strong,Liu-Osher-1996,Qiu-Shu-2005,Xu-2014,Zhang-Shu-2010}).
+Recently, an SSP integrating factor Runge--Kutta method of up to order four was proposed and
+analyzed in \cite{IsherwoodGrantGottlieb:2018} for semilinear hyperbolic and parabolic equations.
+For semilinear hyperbolic and parabolic equations with strong stability (possibly in the maximum norm), the method
+can preserve this property and can avoid the standard parabolic CFL condition $\tau=O(h^2)$, only requiring
+the stepsize $\tau$ to be smaller than some constant depending on the nonlinear source term, also referring to \cite{ju2020maximum}.
+A nonlinear constraint limiter was introduced in \cite{Vegt-Xia-Xu-2019} for implicit time-stepping
+schemes without requiring CFL conditions, which can preserve maximum principle at the
+discrete level with arbitrarily high-order methods by solving a nonlinearly implicit system.
+
+Very recently, a new class of high-order MBP methods was proposed in \cite{LiYangZhou:sisc}.
+The method consists of a $k$th-order multistep exponential integrator
+in time, and a lumped mass finite element method in space with piecewise $r$th-order
+polynomials. At every time level, the extra values exceeding the maximum bound
+are eliminated at the finite element nodal points by a cut-off operation.
+Then the numerical solution at all nodal points
+satisfies the MBP, and an error bound of $O(\tau^k + h^r)$ was proved. However, numerical results in \cite[Table 4.1]{LiYangZhou:sisc}
+indicates that the error bound is not sharp in space, and how to improve the estimate it is still open.
+%As far as we know, this is the first work presenting arbitrarily high-order unconditionally MBP schemes with provable error estimates.
+Besides, the aforementioned scheme requires to evaluate some actions of exponential functions of diffusion operators,
+which might be relatively expensive compared with solving poisson problems, and the generalization to other time stepping schemes is a nontrivial task.
+Finally, the proposed scheme (with relatively coarse step sizes) might produce a numerical solution with obviously
+increasing and oscillating energy. These motivate our current project.
+
+
+\section{Our Contribution}
+
+In this thesis, we develop and analyze a class of maximum bound preserving schemes for approximately solving Allen--Cahn equations.
+We apply a $k$th-order single-step scheme in time (where the nonlinear term is linearized by multi-step extrapolation),
+and  a lumped mass finite element method in space with piecewise
+$r$th-order polynomials and Gauss--Lobatto quadrature. At each time level, a cut-off post-processing
+is proposed to eliminate extra values violating the maximum bound principle at the finite element nodal points.
+As a result, the numerical solution satisfies the maximum bound principle (at all nodal points),
+and the optimal error bound $O(\tau^k+h^{r+1})$ is theoretically proved for a certain class of schemes.
+These time stepping schemes under consideration includes algebraically stable collocation-type methods,
+which could be arbitrarily high-order in both space and time.
+%, provided that the solution is sufficiently smooth
+%and the single-step scheme satisfies certain assumptions, e.g., the $L$-stability.
+%Next, we discuss the algebraically stable collocation-type methods, which belongs to a specified class of single step methods,
+%and establish the error bound $O(\tau^k+h^{r+1})$ without the $L$-stability.
+Moreover, combining the cut-off strategy with the scalar auxiliary value (SAV) technique,
+
+We also develop a class of energy-stable and maximum bound preserving schemes, which is arbitrarily high-order in time.
+
+In this paper we solve the linear parabolic equations with implicit-explicit Runge--Kutta method (IMEX-RK), 
+where the differential operator may be non-selfadjoint, and proved its long time stability and error estimate. 
+We split the differential operator into symmetric part and skew-symmetric part. 
+The skew-symmetric part and source term are evaluated explicitly and the symmetric part is evaluated implicitly. 
+The analysis is based on the spectrum decomposition of the symmetric operator, 
+and all the requirements of our analysis is listed as assumptions. 
+We apply this scheme on coupled Stokes-Darcy system, 
+where the symmetric-skewsymmetric decomposition can also decouple the operator itself and improve the efficiency. 
+
+Straightforwardly, this work can be extended to semilinear equations. 
+We can also apply IMEX-RK method on semilinear equations to avoid solving nonlinear system, 
+A reformulation on the function is performed so that we will not meet the singularity. 
+With the cut-off postprocessing on each step, 
+we can show that it can preserves maximum bound and be arbitrarily high order. 
+A paper by Fu, Tang and Yang showed that some IMEX-RK scheme can 
+preserve energy decay law with a stabilizer, which is compatibile 
+with this work, 
+which means that we can build a scheme for Allen--Cahn equation, 
+preserves both MBP and energy decay, and is up to three order. 
+
+Also, we analyzed the robust convergence of a class of 
+parareal algorithms for solving parabolic problems. 
+The coarse propagator is fixed to the backward Euler method 
+and the fine propagator is a high-order single step integrator. 
+Under some conditions on the fine propagator, 
+we show that there exists some critical $J_*$ such that t
+he parareal solver converges linearly with a convergence 
+rate near $0.3$, provided that the ratio between the coarse 
+time step and fine time step named $J$ satisfies $J \ge J_*$. 
+The convergence is robust even if the problem data is nonsmooth 
+and incompatible with boundary conditions. 
+The qualified methods include all absolutely stable single 
+step methods, whose stability function satisfies 
+$|r(-\infty)|<1$, and hence the fine propagator could be 
+arbitrarily high-order. Moreover, we examine some popular 
+high-order single step methods, e.g., two-, three- and 
+four-stage Lobatto IIIC methods, and verify that the 
+corresponding parareal algorithms converge linearly with a 
+factor $0.31$ and the threshold for these cases is $J_* = 2$. 
+
+Related numerical experiments are presented to all the problems. 
+

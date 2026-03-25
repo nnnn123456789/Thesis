@@ -1,0 +1,941 @@
+
+\chapter[Long-Time Linear]{high-order implicit-explicit
+Runge-Kutta methods for linear and semilinear system}
+
+
+
+\section{Introduction}\label{Sec:intro}
+In this work, we investigate a numerical approach to solve the following problem. 
+Let $V \subset H = H' \subset V'$ be a Gelfand triple of Hilbert spaces, 
+where the superscript ' denotes the dual. 
+Namely, the embedding $V\embed H$ is continuous and dense, and 
+$$(u, v)_{V, V'} = (u,v)_H \quad \forall u \in H \embed V', v \in V \embed H,$$
+where $(\cdot, \cdot)_{V, V'}$ is the duality pairing between $V'$ and $V$, 
+and $(\cdot,\cdot)_H$ is the inner product on $H$. 
+
+We consider an abstract parabolic initial value problem: 
+find
+$$u \in L^2((0,T);V) \subset H^1((0,T);V')\embed C([0,T];H)$$\
+such that 
+\begin{equation}\label{eq:abstract}
+    \begin{cases}
+    \partial_t u = \calA u + f(t) & 0 < t < T,\\
+    u(0) = u_0  \in H
+  \end{cases}
+\end{equation}
+where $\calA: V \to V'$ is a bounded linear operator (possibly non-selfadjoint) 
+with the following property that:
+$$\beta^{-1}\|u\|_V^2 \leq -(Du, u) \leq \beta \|u\|_V^2 \quad \forall u \in V, $$
+$$ \lvert(Lu, v)\rvert \leq C \|u\|_V \|v\|_H, 
+\forall u\in V, v \in H,$$
+where $D = (\calA+\calA^*)/2, L = (\calA-\calA^*)/2$ are the symmetric and skew-symmetric 
+part of the operator $\calA$. Furthermore, $D$ is negative definite. 
+
+\subsection{Examples of the abstract problem}
+As a multiphysics system, the Stokes-Darcy system is considered in this work which describes a moving fluid governed by the Stokes equations in a free-flow region $\Omega_S\subset\R^d$ and a flow in a neighboring  porous media region $\Omega_D\subset\R^d$. Darcy flow and Stokes flow interact through an interface denoted by $\Gamma$ as shown in Figure \ref{NS_Darcy_domain}. Applications of such a coupled system are ubiquitous in nature, including groundwater system \cite{HoppePortaVassilevski:2007,HouQiuHeGuoWeiBai:2016,LaytonTranTrenchea:2013}, petroleum extraction \cite{ChenSunWang:2014}, and so on.
+
+% the coupling of flow in a porous media region $\Omega_D\subset\R^d$ and a free-flow region $\Omega_S\subset\R^d$ separated by an interface $\Gamma$ (as shown in Figure \ref{NS_Darcy_domain}), which has many applications in groundwater system \cite{JHou_XMHe_CGuo_MWei_BBai_1,RHoppe_PPorta_YVassilevski_1,WLayton_HTran_CTrenchea_1}, industrial filtrations \cite{NHanspal_AWaghode_VNassehi_RWakeman_1,VNassehi_1},  petroleum extraction \cite{TArbogast_MGomez_1,JChen_SSun_XWang_1}, and so on.
+\begin{figure}[t]
+\begin{center}
+\begin{tikzpicture}
+%\draw[-, thick] (0,0) -- (4,0) ;
+\draw[-,] (0,0) -- (4,0) ;
+\draw[-,] (4,0) -- (4,3) ;
+\draw[-, ] (4,3) -- (0,3) ;
+\draw[-,] (0,3) -- (0,0) ;
+\draw[-] (0,1.5) -- (4,1.5) ;
+\draw (2.1,0.7) node[left]{$\Omega_S$} ;
+\draw (2.1,2.1) node[left]{$\Omega_D$} ;
+\draw (3,1.3) node[left]{$\Gamma$} ;
+%\draw[-Latex,] (0.5,1.5) -- (0.5,1.0) node[below]{$\,\,\,\,{\bm n}_D$} ;
+\draw[-Latex,] (0.5,1.5) -- (0.5,2.0) node[above]{${\mathbf{n}}$} ;
+\end{tikzpicture}
+\end{center}
+\caption{Computational domain of the Stokes--Darcy system}
+%s $\Omega_D$ and $\Omega_S$, and the interface $\Gamma$}
+\label{NS_Darcy_domain}
+\end{figure}
+This model consists of a parabolic equation
+\begin{equation}\label{DS-1}
+\begin{cases}
+\partial_t \phi -\nabla\cdot(\kappa\nabla\phi)  = f_D
+&\mbox{in}~~\Omega_D\times(0,T], \\
+\phi = 0 &\mbox{on}~~\partial\Omega_D
+\backslash\overline\Gamma\times(0,T] ,\\
+-\kappa\nabla\phi\cdot \bfn = \u\cdot \bfn   & \mbox{on}~~\Gamma\times(0,T] ,\\
+\phi(0)= \phi_0 & \mbox{in}~~\Omega_D,
+\end{cases}
+\end{equation}
+which describes the Darcy flow in the porous media region $\Omega_D$ through the unknown hydraulic head $\phi$,
+%(by Darcy's law, the fluid discharge rate is given by $-\kappa\nabla\phi$),
+and an evolving Stokes equation
+\begin{equation}\label{DS-2}
+\begin{cases}
+\partial_t \u - \nabla\cdot \T(\u, p )
+= \mathbf{f}_S &\mbox{in}~~\Omega_S\times(0,T] , \\
+\nabla\cdot\u=0 &\mbox{in}~~\Omega_S\times(0,T] , \\
+\u  = 0 &\mbox{on}~~\partial\Omega_S
+\backslash\overline\Gamma\times(0,T] ,\\
+-\T(\u,p)\bfn = g \phi \bfn +\mu(\bfu-(\bfu\cdot\bfn)\bfn)
+& \mbox{on}~~\Gamma\times(0,T] , \\
+\u(0)=\u_0 & \mbox{in}~~\Omega_S,
+\end{cases}
+\end{equation}
+which describes free flow in the region $\Omega_S$ through the fluid velocity $\bfu$, where $\T(\u, p)=2\nu \mathbb{D}(\u)-p \mathbb{I}$ denotes the stress tensor, in which $\mathbb{D}(\u)=\frac12(\nabla\u+(\nabla \u)^\top)$ is the deformation tensor and $\mathbb{I}$ is the $d\times d$ identity matrix. The physical parameters $\kappa$, $g$, $\mu$ and $\nu$ in this model are positive constants, and $f_D$ and $\mathbf{f}_S$ are given source terms.
+
+Homogeneous Dirichlet boundary conditions will be imposed on 
+outer boundaries separately, i.e., on 
+$\partial\Omega_D\backslash\Gamma$ and 
+$\partial\Omega_S\backslash\Gamma$. 
+The interface conditions on $\Gamma$ in \eqref{DS-1} 
+and \eqref{DS-2} represent conservation of mass and 
+balance of force, respectively, where $\bfn$ denotes the 
+unit normal vector on $\partial\Omega_S$ as shown in Figure 
+\ref{NS_Darcy_domain}.
+
+For the ease of error estimate, we will rewrite the Stokes-Darcy system as an equivalent abstract problem \cite{li2020long}.
+
+Let $H= L^2(\Omega_D)\times L^2(\Omega_S)^d$ and $V=H^1_\Gamma(\Omega_D)\times {\bf H}^1_\Gamma(\Omega_S; {\rm div_0})$, where
+\begin{align*}
+&H^1_\Gamma(\Omega_D)=\{\varphi\in H^1(\Omega_D):\varphi=0\,\,\mbox{on}\,\,\partial\Omega_D\backslash\Gamma\},\\
+&{\bf H}^1_\Gamma(\Omega_S; {\rm div_0})=\{{\v}\in H^1(\Omega_S)^d:
+\nabla\cdot{\v}=0\,\,\mbox{in}\,\,\Omega_S\,\,\mbox{and}\,\,{\v}=0\,\,\mbox{on}\,\,\partial\Omega_S\backslash\Gamma\}.
+\end{align*}
+The weak formulation of \eqref{DS-1}-\eqref{DS-2} reads: find $(\phi,\u)\in L^2((0,T);V)\cap H^1((0,T);V') \hookrightarrow C([0,T];H) $
+satisfying the following equations for all test functions $(\varphi,{\v})\in L^2((0,T);V)$:
+%for all test functions $(\varphi,{\bm v},q)\in H^1(\Omega_D)\times H^1(\Omega_S)^3\times L^2(\Omega_S)$ :
+\begin{align}
+&(\partial_t\phi,\varphi)_{D}+(\kappa\nabla \phi,\nabla \varphi)_{D}
+-(\bfu\cdot\bfn,\varphi)_{\Gamma}=(f_D,\varphi) \label{DS-weak-1} \\[5pt]
+&(\partial_t\bfu,{\bfv})_{S}+(2\nu \D(\bfu),\D({\bfv}))_{S}
+% - (p,\nabla\cdot{\bm v}) \nonumber \\
++(g\phi,{\bfv}\cdot\bfn)_{\Gamma}
++\mu(\bfu-(\bfu\cdot\bfn) \bfn,{\bfv}-({\bfv}\cdot\bfn) \bfn)_{\Gamma} \label{DS-weak-2} \\
+&=(\mathbf{f}_S,{\bfv}) \nonumber ,
+%&&\forall\, {\bm v} \in H^1(\Omega_S)^3, \\[5pt]
+%&(\nabla\cdot\u,q)_S =0 &&\forall\,q \in L^2(\Omega_S) .
+\end{align}
+where $(\cdot,\cdot)_D$ is the pairing between $H^1_\Gamma(\Omega_D)'$ and $H^1_\Gamma(\Omega_D)$, $(\cdot,\cdot)_S$ is the pairing between ${\bf H}^1_\Gamma(\Omega_S; {\rm div_0})'$ and ${\bf H}^1_\Gamma(\Omega_S; {\rm div_0})$, and
+$(\cdot,\cdot)_\Gamma$ is the inner product on $L^2(\Gamma)$.
+
+Let the operators $A_1:H^1_\Gamma(\Omega_D)\rightarrow H^1_\Gamma(\Omega_D)'$, $A_2:{\bf H}^1_\Gamma(\Omega_S; {\rm div_0})\rightarrow {\bf H}^1_\Gamma(\Omega_S; {\rm div_0})'$, $B:{\bf H}^1_\Gamma(\Omega_S; {\rm div_0})\rightarrow H^1_\Gamma(\Omega_D)'$ and $B^*:H^1_\Gamma(\Omega_D)\rightarrow {\bf H}^1_\Gamma(\Omega_1; {\rm div_0})'$
+%\begin{align*}
+%&M:H^1(\Omega_D)\rightarrow H^1(\Omega_D)',\\
+%&D:{\bf H}^1(\Omega_S; {\rm div_0})\rightarrow {\bf H}^1(\Omega_S; {\rm div_0})',\\
+%&B:{\bf H}^1(\Omega_S; {\rm div_0})\rightarrow H^1(\Omega_D)',
+%%&B_h:{\bf X}_h^{r+1}(\Omega_S)\rightarrow {\bf X}_h^{r+1}(\Omega_S),\\
+%\end{align*}
+be defined via duality by
+\begin{align*}
+&(A_1\phi,\varphi)_D=(\kappa\overline{\nabla\phi},\nabla \varphi)_{D}
+\hspace{181pt} \forall\, \phi, \varphi\in H^1_\Gamma(\Omega_D), \\
+&(A_2 \u ,{\v} )_S=(2\nu \overline{\D(\u )},\D({\v} ))_{S}\!+\!\mu(\overline{\u\! -\!(\u \cdot\n) \n},{\v}\!-\!({\v} \cdot\n) \n)_{\Gamma}
+\hspace{10pt} \forall\,\u ,{\v} \in  {\bf H}^1_\Gamma(\Omega_S; {\rm div_0}) ,\\
+&(B \u ,\varphi)_D=(\overline{\u \cdot\n},\varphi )_{\Gamma}
+\hspace{33pt}\forall\,\u\in {\bf H}^1_\Gamma(\Omega_S; {\rm div_0}) \hookrightarrow L^2(\Gamma),\,\,\forall\, \varphi \in H^1_\Gamma(\Omega_D) \hookrightarrow L^2(\Gamma),\\
+&(B^*\phi, {\v})_D=(\phi,\overline{{\v} \cdot\n} )_{\Gamma}
+\hspace{33pt}\forall\,\phi \in H^1_\Gamma(\Omega_D) \hookrightarrow L^2(\Gamma),\,\,\forall\,{\v}\in {\bf H}^1_\Gamma(\Omega_S; {\rm div_0}) \hookrightarrow L^2(\Gamma) .
+\end{align*}
+Then the weak formulation \eqref{DS-weak-1}-\eqref{DS-weak-2} can be written as
+\begin{align}
+&\partial_t\phi  +A_1 \phi  - B\u = f_{D} , \label{DS-op1} \\
+&\partial_t\u  +A_2 \u + g B^*\phi  = \f_{S} . \label{DS-op2}
+\end{align}
+By defining notations
+\begin{align}
+u=\left(\begin{array}{cc}
+\phi \\
+g^{-\frac12}\u \end{array}\right) ,
+\quad
+f=\left(\begin{array}{cc}
+f_{D} \\
+g^{-\frac12}\f_{S} \end{array}\right)
+\quad\mbox{and}\quad
+\calA
+=-\left(\begin{array}{cc}
+A_1 &  -g^\frac12B \\
+g^{\frac12}B^* &   A_2\end{array}\right) ,
+\end{align}
+equations \eqref{DS-op1}-\eqref{DS-op2} are equivalently reformulated to the abstract parabolic initial value problem \eqref{eq:abstract}.
+
+
+\subsection{Review on existing studies}
+
+Many works have been done for the Stokes-Darcy system \eqref{DS-1}-\eqref{DS-2}.
+Beavers and Joseph \cite{BeaversJoseph:1967} firstly conducted experimental works on this system and proposed the well-known Beavers-Joseph interfacial conditions and then many other mathematical investigations follow \cite{Ene:1975,JagerMikelic:1996,MikelicJager:2000,JagerMikelicNeuss:2001,LevySanchez:1975,MarusicMikelic:2000}.
+Using the conditions, analysis of the coupled Stokes-Darcy system  can be found in \cite{BurmanHansbo:2007,DAngeloZunino:2009,DiscacciatiMiglio:2002,LaytonFriedhelmYotov:2003,Riviere:2005,RiviereYotov:2005} for the steady case and in \cite{CaoGunzburgerHuaWang:2010,Zunino:2002} for the time-dependent case.
+
+Due to the various applications of Stokes-Darcy system, many different numerical methods are developed and analyzed, including domain decomposition methods \cite{DiscacciatiQuarteroni:2004,BoubendirTlupova:2013,CaoGunzburger:2011,ChenGunzburger:2011,DiscacciatiMiglio:2002,DiscacciatiQuarteroni:2007,FengHeWangZhang:2012,GunzburgerHeLi:2018,VassilevWangYotov:2014,QiuHeLiLin:2020}, Lagrange multiplier methods \cite{LaytonFriedhelmYotov:2003,BabuskaGatica:2010,GaticaMeddahiOyarzua:2008,HuangChenCai:2012}, discontinuous Galerkin methods \cite{KanschatRiviere:2010,LipnikovVassilevYotov:2014,Riviere:2005,RiviereYotov:2005}, multigrid methods \cite{ArbogastGomez:2009,MuXu:2008}, partitioned time-stepping methods \cite{KubackiMoraiti:2015,MuZhu:2010,ShanZheng:2013,ZhangRuiCao:2019}, coupled finite element methods \cite{CaoGunzburgerHu:2010,CamanoGatica:2015,KarperMardalWinther:2009,MarquezMeddahiSayas:2015} and many others \cite{ChenGunzburger:2016,ChenGunzburger:2013,GiraultVassilevYotov:2014,HeJiangQiu:2020}. In particular, 
+Kubacki et al \cite{KubackiTran:2017} presented an overview of non-iterative partitioned methods for such a system. With a time-step restriction for stability, numerical schemes of both first-order and high-order partitioned methods were presented. Gunzburger et al in \cite{GunzburgerHeLi:2018} analyzed a parallel, non iterative, multiphysics domain decomposition method for decoupling the Stokes-Darcy model with multistep backward difference formula (BDF) for the time discretization. Optimal order $O(\tau^k)$ for the $k$-step BDF scheme were established in a general framework for any $k\le5$.
+Chen et al in \cite{ChenGunzburger:2013} proposed two second-order-in-time implicit-explicit methods including $2$-step BDF and second-order Adams-Moulton-Bashforth method (AME$2$) in which coupling term in the interface conditions was treated explicitly and established for both schemes the unconditional and uniform-in-time stability. Error bound was derived with $O(\tau^2)$.  An improvement of this work was presented in \cite{ChenGunzburger:2016}, in  which a third-order in time AME algorithm was studied and uniform-in-time error estimate was derived.
+%Note that all methods are implicit-explicit (IMEX) schemes. 
+Recently, authors in \cite{LiWangZhou:2020} presented an implicit-explicit (IMEX) scheme with $k$-step BDF in time and finite element discretization in space. In that paper, the spatial differential operator $\calA$ was split into a symmetric part and an anti-symmetric part on which implicit and explicit schemes were applied respectively. A symmetrized and decoupled temporal $k$-step BDF scheme was presented and optimal long-time error bound $O(\tau^k+h^2)$ was derived.
+
+We notice that aforementioned high-order-in-time works are conducted with multi-step methods and to our knowledge there is no temporal high-order single-step methods adopted for the coupled Stokes-Darcy system in the literature. This motivates us to apply IMEX Runge-Kutta method on the Stokes-Darcy equations aiming to achieve high-order convergence in time.
+
+When a time-dependent partial differential equation (PDE) involves terms of different types, it is natural to employ different discretizations for them. IMEX time-discretization schemes are an example of such an idea. Runge-Kutta methods are a family of implicit-explicit iterative methods which were developed around in the 1900s by the German mathematicians Carl Runge and Wilhelm Kutta. In \cite{AscherRuuthSpiteri:1997}, authors developed Runge-Kutta-based IMEX schemes, among which diagonally implicit Runge-Kutta (DIRK) \cite{WannerHairer:1996} scheme is a popular one and we will adopt DIRK in our scheme.
+
+
+
+\subsection{Our contributions and the organization of the paper}
+
+In this work, the spatial differential operator is split into symmetric part and skew-symmetric part, on which implicit and explicit Runge-Kutta schemes are applied, respectively. Based on assumptions ({\bf P1})-({\bf P4}) on the scheme, we establish the long-time error bound for the proposed scheme. 
+
+The rest of this paper is organized as follows.  In Section \ref{sec:IMEX}, we present implicit-explicit Runge-Kutta schemes with various stages and orders and an algorithm for searching coefficients of IMEX Runge-Kutta schemes. Theoretical results for error estimate are shown in Section \ref{sec:convergence}. Finally we present numerical examples in Section \ref{sec:examples} to verify the proposed theorems.
+
+
+
+\section{Implicit-Explicit Runge-Kutta Method}\label{sec:IMEX}
+
+\subsection{Time-Stepping Schemes}
+
+To build a time discretization of the equation \eqref{eq:abstract},
+we split the interval $(0, T)$ as
+$$0 = t^0 < t^1 < \cdots < t^n = T,$$
+with the mesh size $\tau := \max_{1\leq i \leq n}\tau_i$ for $\tau_i = t^i - t^{i-1}$.
+Let $u^n$, $u^{n,i}$ are the approximations to $u(t^n)$ and $u(t^{n,i})$ respectively.
+
+Following Duhamel's principle, the solution of equation \eqref{eq:abstract}
+can be shown as
+
+$$u(t^n) = e^{\tau_n D}u(t^{n-1}) + \int_0^{\tau_n}e^{(\tau_n-s)D}(Lu(t^{n-1}+s)+f(t^{n-1}+s))\rmd s$$
+
+Then a framework of a single step scheme of approximating $u(t^n)$ reads:
+
+\begin{align}\label{eq:SingleStep}
+    u^n = \sigma(-\tau_n D)u^{n-1} + \tau_n \sum_{i=1}^mp_i(-\tau_n D)(L u^{n,i} + f^{n,i})
+\end{align}
+where $t^{n,i} = t^{n-1}  + c_i\tau_n$
+with $c_i$ are distinct real numbers in $[0,1]$ for $i = 1, \dots, m$,
+$u^{n,i}$ is generated from $u^{n-1}$, $f^{n,i} = f(t^{n,i})$. 
+Here $\sigma(\lambda)$ and $\{p_i(\lambda)\}_{i=1}^m$ are rational functions.
+For simplicity reasons, we assume that $\tau^n$ is of uniform mesh size, i.e. $\tau^i = \tau$ for $i = 1, \dots, n$.
+
+A series of famous schemes are included in this analysis, including the Implicit-Explicit Runge--Kutta scheme
+we are going to talk about.
+
+\subsection{Implicit-Explicit Runge-Kutta schemes}
+
+For the symmetric part $D$ in equation \eqref{eq:abstract},
+we consider an $m$-stage diagonally implicit Runge--Kutta (DIRK) scheme
+with coefficient $A = \{a_{ij}\}_{m\times m}$, $b = \{b_{i}\}_{i=1}^m$.
+For the skew-symmetric part, we make use of an $m$-stage explicit scheme
+with the same abscissae $\hat{c}=c = \{c_i\}_{i=1}^m$
+and coefficient $\hatA = \{\hata_{ij}\}_{m\times m}$, $\hatb = \{\hatb_{i}\}_{i=1}^m$.
+Thus, the IMEX-RK can be determined by the following Butcher tabular
+% \begin{table}[h]
+%     \centering
+%     \begin{tabular}[h]{c|cccc|cccc}
+%         $c_1$ & $a_{11}$ & $0$ & $\dots$ & $0$ & $\hata_{11}$ & $0$ & $\dots$ & $0$ \\
+%         $c_2$ & $a_{21}$ & $a_{22}$  & $\dots$ & $0$ & $\hata_{21}$ & $\hata_{22}$ & $\dots$ & $0$ \\
+%         $\vdots$ & $\vdots$ & $\vdots$  & $\ddots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+%         $c_m$ & $a_{m1}$ & $a_{m2}$  & $\dots$ & $a_{mm}$ & $\hata_{m1}$ & $\hata_{m2}$ & $\dots$ & $\hata_{mm}$ \\
+%         \hline
+%            & $b_1$ & $b_2$ & $\dots$ & $b_m$ & $\hatb_1$ & $\hatb_2$ & $\dots$ & $\hatb_m$
+%     \end{tabular}
+%     \caption{Butcher tableau for Runge--Kutta scheme.}
+%     \label{tab:Butcher}
+% \end{table}
+
+
+
+Then the IMEXRK scheme can be written as
+
+\begin{equation} \label{eq:imex}
+    \begin{cases}
+        u^{n,0} = u^{n-1}\\
+        u^{n,i} = u^{n-1} + \tau \sum\limits_{j=1}^ia_{ij}Du^{n,j} + \tau \sum\limits_{j=1}^i\hata_{ij}(Lu^{n,j-1}+f(t^{n, j-1})) \quad i = 1, \dots, m\\
+        u^n = u^{n-1} + \tau \sum\limits_{j=1}^m b_jDu^{n,j} + \tau \sum\limits_{j=1}^m \hatb_j(Lu^{n,j-1}+f(t^{n, j-1})) \\
+    \end{cases}
+\end{equation}
+
+Or, in vector form, let $U^n = \{u^{n,i}\}_{i=1}^m$,
+$V^n =  \{v^{n,i}\}_{i=1}^m =  \{Lu^{n,i-1}+f(t^{n,i-1})\}_{i=1}^m$.
+We can get
+\begin{equation} \label{eq:ImexVec}
+    \begin{cases}
+        U^n = \bbone u^{n-1} + \tau A DU^n + \tau \hatA V^n,\\
+        u^n = u^{n-1} + \tau b^\top D U + \tau b^\top V.
+    \end{cases}
+\end{equation}
+
+% Ususlly, we can make $b_i$ and $\hatb_i$ be the last column of $A$ and $\hatA$,
+% which means
+% \begin{equation}\label{eq:LastRow}
+%     b^\top = z^\top A, \hatb^\top =  z^\top \hatA.
+% \end{equation}
+% where $z = (0, \dots, 0, 1)^\top$.
+
+To illustrate the stability, we will make some further assumptions
+to the scheme.
+\begin{itemize}
+    \item[{\bf (P1)}] $\sigma(\lambda)$, $p_i(\lambda)$ are polynomials with respect to $\lambda$ for all $i=1, \dots, m$.
+    $0 < \sigma(\lambda) \leq 1$.
+    Besides, the numerator of $\sigma$ is a polynomial of which the degree is one order lower than its denominator,
+    and the numerators of $p_i$ are polynomials of which the degree are lower than their denominators.
+    \item[{\bf (P2)}] $A = \{a_{ij}\}_{m\times m}$ is lower-triangular, and its diagonal entries $a_{ii}$ are positive for $i\geq 1$.
+    % \item[{\bf (P2)}] $A = \{a_{ij}\}_{m\times m}$ is lower-triangular.
+    \item[{\bf (P3)}] $b_i$ and $\hatb_i$ be the last column of $A$ and $\hatA$, which means that
+    \begin{equation}\label{eq:LastRow}
+        b^\top = z^\top A, \hatb^\top =  z^\top \hatA.
+    \end{equation}
+    where $z = (0, \dots, 0, 1)^\top$.
+    \item[{\bf (P4)}] With the definition
+    $$A_\sigma = \begin{pmatrix}0 & 0 \\ 0 & A \end{pmatrix}, \hatA_\sigma = \begin{pmatrix}0 & 0 \\ \hatA & 0 \end{pmatrix}, b_\sigma =\begin{pmatrix}0 \\ b\end{pmatrix},\hatb_\sigma =\begin{pmatrix}\hatb\\0\end{pmatrix},
+    c_\sigma = \begin{pmatrix}0 \\c\end{pmatrix},$$
+    we have the following properties for given positive integer $k$
+    $${b}_*^\top c^{l-1} = \frac{1}{l}, \text{\quad for $1\leq l \leq k$, ${b}_* \in\{b_\sigma, \hatb_\sigma\}$}$$
+    $$z^\top \left(\prod_{i=1}^{l}A_{*i}\right) e = \frac{1}{l!}, \text{\quad for $1\leq l \leq k$, $A_{*i} \in\{A_\sigma, \hatA_\sigma\}$}$$
+    \begin{equation*}
+        z^\top\left(\prod_{i=1}^{r}A_{*i}\right) c^l = \frac{l!}{(l+r)!}, \quad \forall l\geq 0, r\geq 0, l+r\leq k, A_{*i} \in\{A_\sigma, \hatA_\sigma\}
+    \end{equation*}
+\end{itemize}
+
+\begin{remark}
+    In condition that assumption (P3) holds, the third relation of 
+    assumption (P4) is a sufficient condition of the other relations. 
+\end{remark}
+Then equation \eqref{eq:ImexVec} gives us
+$$(I - \tau AD)U^n = \bbone u^{n-1} + \tau \hatA V^n,$$
+Take the inverse and employ the last relation of equation \ref{eq:ImexVec},
+
+$$U^n = (I - \tau AD)^{-1}\bbone u^{n-1} + \tau (I - \tau AD)^{-1}\hatA V^n,$$
+$$u^n = z^\top U^n = z^\top(I - \tau AD)^{-1}\bbone u^{n-1} + \tau z^\top(I - \tau AD)^{-1}\hatA V^n$$
+
+
+Let $\sigma(s) = z^\top(I + sA)^{-1}\bbone$,
+and $p_i(s)$ be the $i$-th entry of $z^\top(I + sA)^{-1}\hatA$
+for $s > 0$.
+Then the scheme can also be written as
+\begin{equation}\label{eq:sigma}
+    u^n = \sigma(-\tau D) u^{n-1} + \tau \sum_{i=1}^m p_i(-\tau D)(L u^{n,i-1} + f(t^{n, i-1})).
+\end{equation}
+
+Later on we will show some properties of $\sigma$ and $p_i$.
+
+
+\begin{lemma}\label{thm:Polynomial}
+    If a Runge--Kutta scheme \ref{eq:imex} can be rewritten into \ref{eq:sigma},
+    and the assumption (P2) and (P3) are valid,
+    then all these $\sigma(s)$ and $p_i(s)$ are rational functions with respect to $s$.
+    Their shared denominator is of degree $m$,
+    and their numerators are of degree at most $m-1$.
+\end{lemma}
+
+Proof:
+To show this, the only point we should focus on is the cofactor matrix
+of $I+sA$. It is well-known that
+$$(I+sA)^{-1} = \det(I+sA)^{-1} (I+sA)^*,$$
+where the star denotes the cofactor matrix.
+
+Since $\sigma(s) = z^\top(I + sA)^{-1}\bbone$,
+$p_i(s)$ are the $i$-th entry of $z^\top(I + sA)^{-1}\hatA$,
+we can read directly that $\sigma$ and $p_i$
+share the same denominator $\det(I+sA)$, and
+its order is $m$.
+
+By the definition of the cofactor matrix,
+we can know that all the entries of the cofactor matrix are polynomials of order at most $m-1$,
+So $p_i$and $\sigma$ have their numerators of degree at most $m-1$,
+which completes the proof.
+
+\begin{corollary}\label{thm:PiSigmaBound}
+    If all the requirements of Lemma \ref{thm:Polynomial} are valid,
+    and Assumption (P1) holds,
+    then there exists positive constants $c_0$, $c_1$, $c_2$, s.t.
+    $$ \sigma(\lambda) < 1/(1+c_0\lambda), \forall \lambda > 0, $$
+    $$ \lambda \sigma(\lambda) < c_1, \forall \lambda > 0, $$
+    $$ p_i(\lambda)\sigma(\lambda)^{-1} < c_2, \forall \lambda > 0. $$
+\end{corollary}
+
+We list some schemes on the Appendix which satisfy the above assumptions, 
+together with how we can find the schemes. 
+
+
+
+
+
+\section{Convergence Analysis for Linear IMEX-RK}\label{sec:convergence}
+
+Before we illustrate the stability theorem, we will show a stability lemma for the stages, which may be used in the later theorem.
+\begin{lemma}\label{thm:Stages}
+    If a series of solutions satisfy
+    $$\psi = \phi + c_0 \tau D\psi + \tau \sum\limits_{i=1}^{m}a_{i}Dv^i + \tau \sum\limits_{i=1}^{m}\hata_{i}Lv^{i},$$
+    for some constant $c_0>0$, then there exists a constant $C$ such that
+
+    $$\|\psi\|_H \leq C\Big( \|\phi\|_H + \sum_{i=1}^m \|v_i\|_H \Big),$$
+    $$\|\psi\|_V \leq C\Big( \|\phi\|_V + \sum_{i=1}^m \|v_i\|_V \Big),$$
+\end{lemma}
+Proof: Take the inverse of $(I - c_0 \tau D)$, we can get
+
+$$\psi = (I - c_0 \tau D)^{-1}\Big(\phi + \tau \sum\limits_{i=1}^{m}a_{i}Dv^i\Big) + \tau \sum\limits_{i=1}^{m}\hata_{i}(I - c_0 \tau D)^{-1}Lv^{i}.$$
+Test with $\psi$ and we can get
+$$\|\psi\|_H^2 \leq C\|\psi\|_H\Big(\|\phi\|_H + \sum_{i=1}^m \|v_i\|_H\Big) + \tau \sum\limits_{i=1}^{m} \hata_i\Big(Lv^{i}, (I - c_0 \tau D)^{-1} \psi\Big)$$
+and
+$$\tau \Big(Lv^{i}, (I - c_0 \tau D)^{-1} \psi\Big) \leq C \tau \|v^i\|_H \|(I - c_0 \tau D)^{-1} \psi\|_V \leq C \|v^i\|_H \|\psi\|_H.$$
+which gives us the first relation.
+
+To get the second relation, instead of test $\psi$, we will now test $-D\psi$ to the above equation. It turns to be
+$$\|\psi\|_V^2 \leq C\|\psi\|_V\Big(\|\phi\|_V + \sum_{i=1}^m \|v_i\|_V\Big) - \tau \sum\limits_{i=1}^{m} \hata_i\Big(Lv^{i}, D(I - c_0 \tau D)^{-1} \psi\Big)$$
+and
+$$\tau \Big(Lv^{i}, D(I - c_0 \tau D)^{-1} \psi\Big) \leq  C\tau \|v^i\|_V \|D(I - c_0 \tau D)^{-1} \psi\|_H \leq C \|v^i\|_V \|\psi\|_V.$$
+which gives us the second relation.
+
+\begin{theorem}\label{thm:Stable}
+    If $u^i$ and $u^{n,i}$ are the solutions generated by \ref{eq:imex} and \ref{eq:sigma},
+    with $f=0$, and the assumption (P1) (P2) (P3) hold,
+    then
+    $$\|u^n\|_H^2  \leq \|u^{n-1}\|_H^2 , \forall n>1$$
+    when $\tau \leq \tau^*$, 
+    where the constant $\tau^*$ is only 
+    related to the scheme and $\beta$ in equation \eqref{eq:beta}, 
+    and not related to $u$ or $u^n$.
+\end{theorem}
+Proof: Test equation \ref{eq:sigma} with $\sigma^{-1}(-\tau D)u^n$, we can get
+
+$$\big(u^n, \sigma^{-1}u^n\big) = \big(\sigma u^{n-1}, \sigma^{-1}u^n\big) +\tau \sum_{i=1}^m \big(p_iL u^{n,i-1}, \sigma^{-1}u^n\big)$$
+
+Due to the symmetry of $D$, all the rational combinations are symmetric and commutable, so 
+
+$$\big(u^n, \sigma^{-1}u^n\big) = \big( u^{n-1}, u^n\big) +\tau \sum_{i=1}^m  \big(L u^{n,i-1},p_i \sigma^{-1}u^n\big)$$
+
+Since $L$ is skew-symmetric, $(\alpha Lw,w) = \alpha(Lw, w)=-\alpha(w, Lw) = 0$ for all $\alpha, w$,
+so
+$$\big(u^n, \sigma^{-1}u^n\big)  = \big( u^{n-1}, u^n\big) +
+\tau \sum_{i=1}^m  \bigg(L\big(u^{n,i-1}-p_i(0)^{-1}p_i \sigma^{-1}u^n\big),p_i \sigma^{-1}u^n\bigg).$$
+
+For our assumption, there exist an $c_0' = c_0 /\beta$ s.t. $0 < \sigma(s) <1/(1+c_0'\beta s)$, so the LHS
+of the above equation can be bounded by
+
+$$\big(u^n, \sigma^{-1}u^n\big) > \big\|u^n\big\|_H^2 + c_0'\tau\big\|u^n\big\|_V^2$$
+
+and
+$$\big(u^{n-1}, u^n\big) = \frac12\big\|u^n\big\|_H^2+\frac12\big\|u^{n-1}\big\|_H^2-\frac12\big\|u^n-u^{n-1}\big\|_H^2.$$
+
+For the second term on the RHS, use the property of $L$, we can get
+
+\begin{align*}
+\sum_{i=1}^m & \;\bigg(L\big(u^{n,i-1}-p_i(0)^{-1}p_i \sigma^{-1}u^n\big),p_i \sigma^{-1}u^n\bigg)\\
+&\leq \epsilon \sum_{i=1}^m\big\|p_i \sigma^{-1}u^n\big\|_V^2
++ C_\epsilon \sum_{i=1}^m\big\|u^{n,i-1}-p_i(0)^{-1}p_i \sigma^{-1}u^n\big\|_H^2\\
+&\leq \epsilon \sum_{i=1}^m\big\|p_i \sigma^{-1}u^n\big\|_V^2
++ 2C_\epsilon \sum_{i=1}^m\big\|u^{n,i-1}-u^n\big\|_H^2 +2C_\epsilon \sum_{i=1}^m\big\|u^n-p_i(0)^{-1}p_i \sigma^{-1}u^n\big\|_H^2\\
+&=I_1+I_2+I_3
+\end{align*}
+
+By corollary \ref{thm:PiSigmaBound}, we can get
+$$I_1 = \epsilon \sum_{i=1}^m\big\|p_i \sigma^{-1}u^n\big\|_V^2 < \epsilon_1 C \big\|u^n\big\|_V^2.$$
+
+% The estimation of $I_2$ is more tricky.
+% Reformulate the first relation of \ref{eq:ImexVec}
+% and we can get
+% \begin{align}\label{eq:ProofStable2}
+%     U^n - u^n\bbone  = (u^{n-1}-u^n)\bbone  + \tau A D(U^n-u^n\bbone) + \tau \hatA (V^n-Lu^n\bbone )
+% + \tau(AD+\hatA L)u^n \bbone.
+% \end{align}
+% Test it with $U^n - u^n\bbone$.
+% $$\big(U^n - u^n\bbone\big)^\top \big(u^{n-1}-u^n\big)\bbone \leq \epsilon_{21} \sum_{i=1}^m \big\|u^{n,i}-u^n\big\|_H^2 + C_{21}\big\|u^{n-1}-u^n\big\|_H^2$$
+% $$\big(U^n - u^n\bbone\big)^\top\tau A D\big(U^n-u^n\bbone\big) \leq \tau C_A \sum \big\|u^{n,i}-u^n\big\|_V^2$$
+% $$\big(U^n - u^n\bbone\big)^\top\tau \hatA \big(V^n-Lu^n\bbone \big)\leq \tau C_\hatA \sum \big\|u^{n,i}-u^n\big\|_V^2 + \tau C_\hatA \sum \big\|u^{n,i}-u^n\big\|_H^2$$
+% $$\big(U^n - u^n\bbone\big)^\top\tau AD u^n \bbone \leq \epsilon_{22} \big\|u^n\big\|_V^2 +  \tau^2 C_{22}\sum \big\|u^{n,i}-u^n\big\|_V^2 $$
+% $$\big(U^n - u^n\bbone\big)^\top\tau \hatA L u^n \bbone \leq \epsilon_{23} \big\|u^n\big\|_V^2 +  \tau^2 C_{23}\sum \big\|u^{n,i}-u^n\big\|_H^2 $$
+
+% Combine all these terms, for fixed small $\epsilon_{2i}$, and make $\tau < \tau_1^*$
+% which is only related to $\epsilon_{2i}$ and $\hatA$,
+% then the terms $\|u^{ni}-u^n\|^2$ of the RHS can partially cancel the LHS, then
+% $$I_2 \leq C_1\epsilon_2 \big\|u^n\big\|_V^2 + C_1C_2\big\|u^{n-1}-u^n\big\|_H^2
+% +\tau CC_1 \sum\big\|u^{n,i}-u^n\big\|_V^2$$
+
+Then we are going to estimate $I_2$. The second relation in \ref{eq:imex} gives us
+$$u^{n,i}-u^n = (u^{n-1}-u^n) + \tau \sum\limits_{j=1}^ia_{ij}D(u^{n,j}-u^n) + \tau \sum\limits_{j=1}^i\hata_{ij}L(u^{n,j-1}-u^n) + \tau c_i(D+L)u^n.$$
+
+Define $w^{n,i} = u^{n,i}-u^n$, so
+$$w^{n,i} = w^{n,0} + \tau \sum\limits_{j=1}^ia_{ij}Dw^{n,j} + \tau \sum\limits_{j=1}^i\hata_{ij}Lw^{n,j-1} + \tau c_i(D+L)u^n.$$
+
+Similar with Lemma \ref{thm:Stages}, taking the inverse of $\big(I-a_{ii}\tau D\big)$, we can derive that
+
+\begin{align*}w^{n,i} &= \tau \sum\limits_{j=1}^{i-1}a_{ij}\big(I-a_{ii}\tau D\big)^{-1}Dw^{n,j} 
++ \tau \sum\limits_{j=1}^i\hata_{ij}\big(I-a_{ii}\tau D\big)^{-1}Lw^{n,j-1} \\
+&+ \big(I-a_{ii}\tau D\big)^{-1}w^{n,0} 
++ \tau c_i\big(I-a_{ii}\tau D\big)^{-1}Du^n+ \tau c_i\big(I-a_{ii}\tau D\big)^{-1}Lu^n. 
+\end{align*}
+
+
+
+Test with $w^{n,i}$, we can derive that 
+\begin{align*}\|w^{n,i}\|_H^2 &\leq C \sum\limits_{j=1}^{i-1}a_{ij}\|w^{n,j}\|_H^2 
++ \tau \sum\limits_{j=1}^i\hata_{ij}\big(Lw^{n,j-1},\big(I-a_{ii}\tau D\big)^{-1} w^{n,i} \big)\\
+&+ \|w^{n,0}\|_H\|w^{n,i}\|_H + C\tau^{1/2} \|u^n\|_V\|w^{n,i}\|_H+ \tau c_i\big(Lu^n, \big(I-a_{ii}\tau D\big)^{-1}w^{n,i}\big),
+\end{align*}
+and
+$$\big(L\phi,\big(I-a_{ii}\tau D\big)^{-1} \chi \big) 
+\leq C\|\phi\|_H\|\big(I-a_{ii}\tau D\big)^{-1} \chi\|_V
+\leq C\|\phi\|_H\|\chi\|_H,$$
+for any $\phi, \chi$. 
+Therefore
+$$\|w^{n,i}\|_H \leq C \|w^{n,0}\|_H + C \sum\limits_{j=1}^{i-1}a_{ij}\|w^{n,j}\|_H+C \tau^{1/2}\|u^n\|_V.$$
+
+Accumulate from $1$ to $i$, we can derive that
+$$\|w^{n,i}\|_H \leq C \|w^{n,0}\|_H + C \tau^{1/2}\|u^n\|_V,$$
+which means that
+$$\|u^{n,i}-u^n\|_H^2 \leq C \|u^{n-1}-u^n\|_H^2 + C \tau\|u^n\|_V^2.$$
+
+For $I_3$, since $p_i\sigma^{-1}$ is bounded, we know that $\Big(1 -\frac{p_i(s)}{p_i(0)\sigma(s)}\Big)^2$
+is also bounded for $s\geq 0$. Further, it is a rational function with value $0$ when $s = 0$, so
+$$\bigg(1 -\frac{p_i(s)}{p_i(0)\sigma(s)}\bigg)^2 \leq Cs, \forall s \geq 0.$$
+which means that
+$$I_3 \leq C_\epsilon\tau \big\|u^n\big\|_V^2.$$
+
+Now, we can get that
+
+\begin{align*}
+    \big\|u^n\big\|_H^2 =& - c_0\tau\big\|u^n\big\|_V^2 + \frac12\big\|u^n\big\|_H+\frac12\big\|u^{n-1}\big\|_H^2-\frac12\big\|u^n-u^{n-1}\big\|_H^2\\
+    &+ \tau \epsilon C \sum_{i=1}^m\big\|u^n\big\|_V^2 + C_\epsilon\tau \|u^{n-1}-u^n\|_H^2 + C_\epsilon \tau^2\|u^n\|_V^2 \\
+    &+ C_\epsilon\tau^2 \big\|u^n\big\|_V^2
+\end{align*}
+
+For a given IMEX--RK scheme, $\epsilon$ can be fixed so that $C_\epsilon$ is also a fixed value,
+which is non-related to the time step $\tau$ and solution $u$.
+Then a small $\tau$ can guarantee that
+$C_\epsilon\tau \|u^{n-1}-u^n\|_H^2$ and $C_\epsilon\tau^2 \big\|u^n\big\|_V^2$ are bounded by the negative terms.
+So finally we find
+
+$$\big\|u^n\big\|_H^2 \leq  \big\|u^{n-1}\big\|_H^2, $$
+which agrees with our claimant.\qed
+
+% Lastly,
+% \begin{align*}
+%     \big\|u^{n,i}-u^n\big\|_V^2 &\leq 2\big\|u^{n,i}\big\|_V^2 + 2\big\|u^{n}\big\|_V^2\\
+%         & \leq C\big\|u^{n-1}\big\|_V^2 + 2\big\|u^{n}\big\|_V^2
+% \end{align*}
+% where we use the result in Lemma \ref{thm:Stages} recursively. Then when $\tau \leq \tau_3^*$, we can get
+% $$\big\|u^n\big\|_H^2 + \gamma \tau \big\|u^n\big\|_V^2 \leq \big\|u^{n-1}\big\|_H^2 + \gamma \tau  \big\|u^{n-1}\big\|_V^2.$$
+
+% Let $\tau^* = \min \{\tau_1^*, \tau_2^*, \tau_3^*\}$, then
+% we can have the above analysis. Note that
+% $\tau^*$ now is only related to the scheme itself,
+% and non-related to the solution $u$. A smaller $c_1$ requires a smaller $\tau^*$.
+
+
+% \begin{remark}
+%     If the matrix $A = \{a_{ij}\}$ is positive definite in sense of inner product,
+%     i.e. $(A+A^T) \succ 0$,
+%     then the second term of $I_2$ is negative definite,
+%     and can cancel the high order terms when $\tau$ is small.
+%     After that, the final stability will be $\big\|u^n\big\|^2 \leq \big\|u^{n-1}\big\|^2$
+%     and the high regulared term will disappear.
+% \end{remark}
+
+Before the error estimation, 
+we will show the convergence theorem for linear symmetric problem. 
+
+\begin{theorem}
+    A stiffly accurate scheme \eqref{eq:imex} 
+    is accurate of order $k$ for linear symmetric problem
+    if and only if 
+\begin{subequations}
+\begin{equation}
+    z^\top \As^l \bbone = \frac{1}{l!}, \forall 0 \leq l \leq k. 
+\end{equation}
+and
+\begin{equation}
+    z^\top\As^r\Ahs c^l = \frac{l!}{(l+r+1)!}, \quad \forall l\geq 0, r\geq 0, l+r\leq k-1.
+\end{equation}
+\end{subequations}
+\end{theorem}
+Proof: let $U^n = \{u^{n,i}\}_{i=0}^m$,
+$F^n =  \{f(t^{n,i})\}_{i=0}^m$.
+We can get
+\begin{equation} \label{eq:AppendImexVec}
+    \begin{cases}
+        U^n = \bbone u^{n-1} + \tau \As DU^n + \tau \Ahs F^n,\\
+        u^n = u^{n-1} + \tau \bs^\top D U + \tau \bs^\top F.
+    \end{cases}
+\end{equation}
+
+Here we write the tabular in extended form. 
+Define a vector $z$ so that 
+$$z^\top = (0, 0, \dots, 0, 1).$$
+We know that a Runge--Kutta scheme is \emph{stiffly accurate} if and only if 
+$$\bs^\top = z^\top \As, \bhs^\top = z^\top \Ahs.$$
+
+The first relation of \eqref{eq:AppendImexVec} gives us that 
+$$(I-\tau \As D)U^n = \bbone u^{n-1} + \tau \Ahs F^n, $$
+$$U^n = (I-\tau \As D)^{-1}\bbone u^{n-1} + \tau (I-\tau \As D)^{-1}\Ahs F^n.$$
+Take the last row of the above equation, which is the stiffly accuracy, 
+so finally we gan get
+$$u^n = \sigma(-\tau D)u^{n-1} + \tau \sum_{i=0}^mp_i(-\tau D)f(t^{n,i}). $$
+where $\sigma(\lambda) = z^\top (1+\lambda \As)^{-1}\bbone$, 
+$\{p_i(\lambda)\}^\top = z^\top (1+\lambda \As)^{-1} \Ahs $
+for $\lambda \geq 0$. 
+we know the rational real function on the operator $D$ is 
+well-defined since $D$ is negative definite such that $-\tau D$ is positive definite. 
+
+We know that the scheme \eqref{eq:imex} is accurate of order $k$ 
+for linear symmetric problem if and only if 
+
+
+\begin{subequations}
+\begin{equation}\label{eq:Append_Acc1}
+    \sigma(\lambda) = e^{-\lambda} + O(\lambda^{k+1}), \quad as~\lambda \to 0, 
+\end{equation}
+and, for any $0\leq l \leq k$, 
+\begin{equation}\label{eq:Append_Acc2}
+    \sum_{i=0}^m c_i^lp_i(\lambda) = \frac{l!}{(-\lambda)^{l+1}}
+    \Big(e^{-\lambda} -\sum_{l=0}^j \frac{(-\lambda)^l}{l!}\Big)
+    + O(\lambda^{k-l}), \quad as~\lambda \to 0. 
+\end{equation}
+\end{subequations}
+See \cite{thomee2007galerkin}.
+
+To get the first relation, since the rational function and 
+exponential function are sufficiently smooth, we can just take the derivative and
+test whether they are same at zero. 
+$$\left(\frac{\rmd}{\rmd t}\right)^l\sigma = z^\top \left(\left(\frac{\rmd}{\rmd t}\right)^l (1+\lambda \As)^{-1}\right)\bbone
+=(-1)^l l! z^\top (1+\lambda \As)^{-(l+1)}\As^l\bbone. $$
+Therefore, \eqref{eq:Append_Acc1} is true if and only of
+$$\left(\frac{\rmd}{\rmd t}\right)^l\sigma(0) = (-1)^l l! z^\top \As^l \bbone = (-1)^l, \quad \forall 0\leq l \leq k.$$
+
+To evaluate the second relation, 
+first we need some simplification.
+The equation \eqref{eq:Append_Acc1} is equivalent to 
+\begin{equation}\label{eq:Append_Acc2b}
+    (-\lambda)^{l+1}\sum_{i=0}^m c_i^lp_i(\lambda) = l!
+    \Big(e^{-\lambda} -\sum_{l=0}^j \frac{(-\lambda)^l}{l!}\Big)
+    + O(\lambda^{k+1}), \quad as~\lambda \to 0. 
+\end{equation}
+Similarly, we only need to compare their derivatives at zero. 
+Let $LHS =  (-\lambda)^{l+1}\sum_{i=0}^m c_i^lp_i(\lambda), RHS = l!
+\Big(e^{-\lambda} -\sum_{l=0}^j \frac{(-\lambda)^l}{l!}\Big)$.
+
+It is obviously that $LHS$ has a $\lambda^{l+1}$ factor 
+so it is zero for no more than $l$ times derivative. 
+So does $RHS$ because the second term is 
+the Taylor's expansion of the first term. 
+So we only need to test their derivatives with order 
+more than $l$.
+
+Let $r\geq 0$ and $l+1+r \leq k$. Take the $(l+1+r)$-th order 
+derivative on $LHS$, with the Leibniz product rule, 
+we can derive that
+\begin{align*}
+{\left(\frac{\rmd}{\rmd t}\right)}^{l+1+r}LHS(0)
+&= C_{l+1+r}^r {\left(\frac{\rmd}{\rmd t}\right)}^{l+1} (-\lambda)^{l+1} {\left(\frac{\rmd}{\rmd t}\right)}^r\sum_{i=0}^m c_i^lp_i(\lambda) \\
+&= \frac{(l+1+r)!}{(l+1)!r!}(-1)^{l+1}(l+1)!\cdot
+z^\top (-1)^r r! (1+ 0 \cdot  \As)^{-(r+1)} \As^r \Ahs c^l\\
+&= (-1)^{l+1+r}(l+1+r)!z^\top\As^r\Ahs c^l.
+\end{align*}
+    
+Therefore, \eqref{eq:Append_Acc2} is true if and only of
+$$(-1)^{l+1+r}(l+1+r)!z^\top\As^r\Ahs c^l = (-1)^{l+1+r}(l)!, \quad \forall l\geq 0, r\geq 0, l+r\leq k-1. $$
+\qed
+
+\begin{remark}
+    If the source term is partially or fully computed implicitly, 
+    then an additional requirement should be added that 
+    \begin{equation*}
+        z^\top\As^r\As c^l = \frac{l!}{(l+r+1)!}, \quad \forall l\geq 0, r\geq 0, l+r\leq k-1.
+    \end{equation*}
+The proof is a line-by-line copy of the previous. 
+\end{remark}
+
+Next, we shall derive an error estimate for the scheme. 
+\begin{theorem}
+    Suppose that the Assumption (P1), (P2), (P3) and (P4) are valid,  
+    $u$ is the solution of \ref{eq:abstract}, $u^n$ is the solution of \ref{eq:imex}. 
+    Then we can have the following error estimate
+
+    $$\|u(t^n) - u^n\|_H \leq C\tau^k$$
+    when $\tau \leq \tau^*$, 
+    where the constant $\tau^*$ is only 
+    related to the scheme and $\beta$ in equation \eqref{eq:beta}, 
+    and not related to $u$ or $u^n$.
+\end{theorem}
+Proof: To begin with, we shall examine the truncation error for our scheme. 
+Let $U_*^n = \{u(t^{n,i}\}_{i=0}^{m}$ be the exact solution. 
+We define the local truncation error $R^n$ as 
+
+
+\begin{equation}\label{eq:LocTrun}
+U_*^n = \bbone u(t^n) + \tau \As D U_*^n + \tau \Ahs (L U_*^n + F^n) + R^n. 
+\end{equation}
+together with 
+\begin{equation}
+U^n = \bbone u^n + \tau \As D U^n + \tau \Ahs (L U^n + F^n). 
+\end{equation}
+
+Define $e^{n,i} = u(t^{n,i}) - u^{n,i}$, and vector $E^n$ be consisted with $e^{n,i}$. we can get
+
+$$E^n = \bbone e^n + \tau \As D E^n + \tau \Ahs L E^n + R^n. $$
+
+Divide $E^n$ into two vectors, such that 
+
+$$E_1^n = \bbone e^n + \tau \As D E_1^n + \tau\Ahs L E_1^n, $$
+$$E_2^n =  \tau \As D E_2^n + \tau\Ahs L E_2^n + R^n.$$
+Obviously $E^n = E_1^n + E_2^n$, and 
+$\|z^\top E_1^n \|_H \leq \|e^n\|_H$ by theorem \ref{thm:Stable}. 
+
+From equation \eqref{eq:LocTrun}, we can get
+$$R^n = (I - \tau \As D - \tau \Ahs L) U_*^n - \bbone u(t^n) - \tau \Ahs F^n.$$
+Substitute this into the relation of $E^2$, we can get
+$$E_2^n = U_*^n - (I - \tau \As D - \tau \Ahs L)^{-1} (\bbone u(t^n) + \tau \Ahs F^n).$$
+
+The Taylor expansion gives us that
+$$U_*^n = \bbone u(t^n) + \sum_{l=1}^{k} \frac{1}{l!}\tau^l c^l u^{(l)}(t^n) + O(\tau^{k+1}).$$
+and 
+\begin{align*}u^{(l)}(t^n) &= (D+L)u^{(l-1)}(t^n) + f^{(l-1)}(t^n) = \dots \\
+    &= (D+L)^lu(t^n) + \sum_{p=0}^{l-1} (D+L)^{l-1-p}f^{(p)}(t^n). 
+\end{align*}
+Although $\As D + \Ahs L$ can be non-self-adjoint and unbounded, 
+the laws of finite productions are true so that 
+$$(I-X)^{-1} = (I-X)^{-1}(I-X^{k+1} +X^{k+1}) = (I+X+\dots +X^k) + (I-X)^{-1}X^{k+1}$$
+where $X$ can be $(\tau \As D+\tau\Ahs L)$. 
+
+Finally, Taylor expansion on $F$ is 
+$$F^n = \bbone f(t^n) + \sum_{l=1}^{k-1} \frac{1}{l!}\tau^lc^lf^{(l)}(t^n) + O(\tau^k).$$
+
+Note that we only need the last element of $E_2$, and the assumptions (P4) guarantee that
+$$z^\top (\As D+\Ahs L)^l \bbone = \frac{1}{l!}(D+L)^l = \frac{1}{l!}\calA^l$$
+and
+$$z^\top (\As D+\Ahs L)^r\Ahs c^l = \frac{l!}{(l+1+r)!}(D+L)^r= \frac{l!}{(l+1+r)!}\calA^r.$$
+
+Combine all the above equations, we can see that 
+all the low order terms are cancelled so 
+$$z^\top E_2 = C \tau^{k+1} $$
+and
+\begin{align*}\|e^{n+1}\| \leq& \|e^n\| + 
+C\tau^{k+1} \|\calA^{k+1}u(t^n)\|_H  \\
+&+C\tau^k \int_{t^n}^{t^{n+1}}\|u^{(k+1)}\|_H \rmd s 
++ C\tau^k \sum_{l=0}^{k-1} \int_{t^n}^{t^{n+1}}\|\calA^lf^{(k-l)}\|_H\rmd s
+.
+\end{align*}
+where the constant $C$ is only related to the 
+scheme itself. 
+
+Furthermore, 
+\begin{align*}
+\tau\|\calA^{k+1}u(t^n)\|_H =& \int_{t^n}^{t^{n+1}}\|\calA^{k+1}u(s)\|_H\rmd s \\
+&+ \int_{t^n}^{t^{n+1}}\|\calA^{k+1}u(t^n)\|_H- \|\calA^{k+1}u(s)\|_H \rmd s \\
+\leq&  \int_{t^n}^{t^{n+1}}\|\calA^{k+1}u(s)\|_H\rmd s + \tau \int_{t^n}^{t^{n+1}}\|\calA^{k+1}u'(s)\|_H\rmd s \\
+\end{align*}
+so, finally, if $\tau \leq \tau^*$, we can get
+\begin{align*}\|e^{n}\| \leq& \|e^0\| + 
+    C\tau^{k} \int_{0}^{t^{n}}\|\calA^{k+1}u(s)\|_H\rmd s + C\tau^{k+1} \int_{0}^{t^{n}}\|\calA^{k+1}u'(s)\|_H\rmd s  \\
+    &+C\tau^k \int_{0}^{t^{n}}\|u^{(k+1)}\|_H \rmd s 
+    + C\tau^k \sum_{l=0}^{k-1} \int_{0}^{t^{n}}\|\calA^lf^{(k-l)}\|_H\rmd s
+    .
+    \end{align*}
+
+If the exact solution and source term is bounded in $(0, \infty)$, then 
+we can get the long time error estimate. 
+Here the constant $C$ is only related to the scheme, 
+and $\tau^*$ is only
+related to the scheme and $\beta$ in equation \eqref{eq:beta}. 
+Neither of them are related to the source term $f$,
+the exact solution $u$, 
+the numerical solution $u^n$, 
+or the mesh size $\tau$. \qed
+
+\begin{remark}
+Note that each possible combination of assumption (P4) has appeared in the above proof during the Taylor's expansion, 
+so the stage order assumption (P4) is also necessary conditions. 
+\end{remark}
+
+\section{Convergence Analysis for Semilinear IMEX-RK}
+
+In this section, we will focusing on solving equation \eqref{eqn:AC} with IMEX-RK method. 
+When we go on the nonlinear case, things are getting complicated, 
+because the explicit terms, which are often the nonlinear terms, 
+may be singular when they exceed their boundaries. 
+One way is just like we have done before, 
+that we use a extrapolation instead, 
+but an extrapolation sometimes may break the stability thus 
+we should pay more care on the analysis. 
+The other way is to modify the potential term 
+and avoid its singularity. 
+
+To solve the equation \eqref{eqn:AC}, first, we define $\hatf$ as 
+\begin{equation}\label{eq:ACmod}
+    \hatf(v)= \begin{cases}
+    f(v), & \text{if $\lvert v \rvert \leq \alpha$,}\\ 
+    f'(\alpha)(v-\alpha), &\text{if $v > \alpha$,}\\ 
+    f'(-\alpha)(v+\alpha), &\text{if $v < -\alpha$,}
+\end{cases}\end{equation}
+
+Note that $f(u) = \hatf(u)$ for $\lvert u \rvert \leq \alpha$, 
+thus the equation \eqref{eqn:AC} and \eqref{eq:ACmod} share the same exact solution. 
+Moreover, since the modification is tangent cutoff of the original function, 
+we can know that $f \in H^2(\bbR)$. 
+
+
+IMEX-RK method on equation \eqref{eqn:AC} reads as 
+
+
+\begin{equation}\label{eq:RK-implicit-explicit-semilinear}
+    \begin{cases}
+    u^{ni} = u^{n-1} + \tau \sum_{j=0}^m a_{ij} \Delta u^{nj} + \tau \sum_{j=0}^m \hata_{ij} \hatf(u^{nj}) &\quad \text{for} ~~i=1,2,\dots,m, \\
+    E(\tau) u^{n-1} = u^{n-1} + \tau \sum_{i=0}^m b_i \Delta u^{ni} + \tau \sum_{i=0}^m \hatb_i\hatf(u^{ni}), \\
+    u^{n} = E(\tau) u^{n-1}
+  \end{cases}
+\end{equation}
+which also consists an operator $u^{n} = E(\tau) u^{n-1}$. 
+
+\begin{theorem}
+    The operator $E(\tau)$ defined in equation \eqref{eq:RK-implicit-explicit-semilinear} 
+    satisfies that 
+    $$\|E(\tau)v - E(\tau)w\| \leq (1+C\tau) \|v-w\|$$
+    for all $v, w \in L^2(\Omega)$. Here $\|\cdot\|$ refers to $L^2$ norm.  
+\end{theorem}
+
+Proof: 
+Define $\bfe_i$ is the vector with $(i+1)$-th entry $1$ and others $0$. 
+$U^n = \{u^{n,0}, u^{n,1}, \dots\}^\top$ , $u^{ni}= \bfe_i^\top U^n$, 
+$\hatf(U^n) = \{\hatf(u^{n,0}), \hatf(u^{n,1}), \dots\}^\top$, so in vector form, 
+\begin{equation}\label{eq:RK-implicit-explicit-semilinear-vector}
+    U^n = \bbone u^{n-1} + \tau A \Delta U^n + \tau \hatA f(U^n),
+\end{equation}
+and
+\begin{equation}
+    U^n = (I-\tau A \Delta)^{-1}\bbone u^{n-1} + \tau (I-\tau A \Delta)^{-1} \hatA \hatf(U^n).
+\end{equation}
+Test with $\bfe_i$, similar to the linear case we can get
+\begin{align*}
+    u^{ni} & =  \bfe_i^\top(I-\tau A \Delta)^{-1}\bbone u^{n-1} + \tau  \bfe_i^\top(I-\tau A \Delta)^{-1} \hatA \hatf(U^n),\\
+        & =:  \sigma_i(-\tau\Delta) u^{n-1} + \tau\sum_{j=0}^{i-1} p_{ij}(-\tau\Delta) \hatf(u^{nj}).     
+\end{align*}
+The boundedness of such $\sigma_i$ and $p_{ij}$ are literally the same to the linear case, 
+beacuse the sub-scheme of an IMEX-RK scheme is also an IMEX-RK scheme in low order, 
+and the failure of high accuracy has no influence on its stability. 
+
+Define $v^i, w^i$ are the stages with respect to $v$ and $w$, we can get 
+
+\begin{align*}\|v^i - w^i\| &\leq \| \sigma_i(v-w)\| + \tau\sum_{j=0}^{i-1} \left\|p_{ij} \left(\hatf(v^j)-\hatf(w^j) \right)\right\|\\
+    &\leq  \|v-w\| + CL \tau\sum_{j=0}^{i-1} \left\|v^j-w^j\right\|
+\end{align*}
+Combine for all $i$ and dating back to the first stage, we can finally defive that 
+$$\|E(\tau)(v-w)\| \leq \|v-w\|. $$
+\qed
+
+Later we will show the consistency error of semilinear IMEX-RK method. 
+
+
+\begin{theorem}
+    Suppose that the Assumption (P1), (P2), (P3) and (P4) are valid for $k \geq 3$, 
+    $u$ is sufficiently smooth on both space and time, then  
+    the operator $E(\tau)$ defined in equation \eqref{eq:RK-implicit-explicit-semilinear} 
+    satisfies that 
+    \begin{equation}\label{eq:semilinear-consistent}
+        \|E(\tau) u(t^{n-1}) - u(t^{n})\| \leq C\tau^{k+1}
+    \end{equation}
+    for all $n \geq 1$. Here $\|\cdot\|$ refers to $L^2$ norm.
+    Furthermore, 
+    in condition that 
+    $$(b_* \cdot c)^\top A_* c = \frac18$$  
+    works for all $A_* \in \{A_\sigma, \hatA_\sigma\}$, 
+    $b_* \in \{b_\sigma, \hatb_\sigma\}$, 
+ equation \eqref{eq:semilinear-consistent} hold for $k=4$. 
+ Here $ v\cdot w$ means the multiplication elementwisely. 
+\end{theorem}
+
+Proof: 
+
+Equation \eqref{eq:RK-implicit-explicit-semilinear-vector} gives us that 
+\begin{equation}\label{eq:semilinear-start}
+    U^n - \bbone u(t^{n-1}) = \tau A \Delta U^n + \tau \hatA \hatf(U^n) = O(\tau).
+\end{equation}
+and 
+\begin{equation}\label{eq:semilinear-first}
+    \begin{aligned}
+    U^n - \bbone u(t^{n-1}) =~& \tau \left(A  \bbone\Delta u(t^{n-1}) + \hatA \bbone \hatf(u(t^{n-1})) \right)\\
+    &+ \tau A \Delta\left(U^n - \bbone u(t^{n-1})\right) + \tau \hatA \left(\hatf(U^n) - \bbone \hatf(u(t^{n-1}))\right)\\
+    =~& \tau u_t^0 + O(\tau^2), 
+    \end{aligned}
+\end{equation}
+where $u_t^0 = A \Delta \bbone u(t^{n-1}) + \hatA \bbone f(u(t^{n-1}))$. 
+
+Substitute equation \eqref{eq:semilinear-first} into itself again, 
+we can derive that 
+\begin{equation}\label{eq:semilinear-second}
+    \begin{aligned}
+    U^n - \bbone u(t^{n-1}) =~& \tau \left(A  \bbone\Delta u(t^{n-1}) + \hatA \bbone \hatf(u(t^{n-1})) \right)\\
+    &+ \tau A \Delta\left(U^n - \bbone u(t^{n-1})\right) \\
+    &+ \tau \hatA \left(\hatf_u\left(U^n - \bbone u(t^{n-1})\right) + O(\tau^2)\right)\\
+    =~& \tau u_t^0 + \tau A\Delta \cdot \tau u_t^0 + \tau \hatA \hatf_u \cdot \tau u_t^0  + O(\tau^3)\\
+    =~& \tau u_t^0 + \tau^2 u_{tt}^0 + O(\tau^3), 
+    \end{aligned}
+\end{equation}
+where $u_{tt}^0 = A \Delta u_t^0 + \hatA \hatf_u u_t^0$. 
+
+Denote $v^{\cdot i}$ as the $i$-th power elementwisely and pointwisely, then
+\begin{equation}\label{eq:semilinear-third}
+    \begin{aligned}
+    U^n - \bbone u(t^{n-1}) =~& \tau \left(A  \bbone\Delta u(t^{n-1}) + \hatA \bbone \hatf(u(t^{n-1})) \right)\\
+    &+ \tau A \Delta\left(U^n - \bbone u(t^{n-1})\right) \\
+    &+ \tau \hatA \left(\hatf_u\left(U^n - \bbone u(t^{n-1})\right) 
+     + \frac12 \hatf_{uu}\left(U^n - \bbone u(t^{n-1})\right)^{\cdot2}  + O(\tau^3)\right)\\
+    =~& \tau u_t^0 + \tau A\Delta \cdot \left(\tau u_t^0 + \tau^2 u_{tt}^0\right) \\
+     & + \tau \hatA \hatf_u \cdot\left(\tau u_t^0 + \tau^2 u_{tt}^0\right)
+     + \tau \hatA \frac12 \hatf_{uu} (\tau u_t^0)^{\cdot 2}  + O(\tau^4)\\
+    =~& \tau u_t^0 + \tau^2 u_{tt}^0+ \tau^3 u_{ttt}^0 + O(\tau^4), 
+    \end{aligned}
+\end{equation}
+where $u_{ttt}^0 = A \Delta u_{tt}^0 + \hatA \hatf_u u_{tt}^0 + \frac12 \hatA \hatf_{uu} (u_t^0)^{\cdot 2}$. 
+Similarily, we reached that 
+\begin{equation}\label{eq:semilinear-fourth}
+    \begin{aligned}
+    U^n - \bbone u(t^{n-1}) =  \tau u_t^0 + \tau^2 u_{tt}^0+ \tau^3 u_{ttt}^0+ \tau^4 u_{tttt}^0 + O(\tau^5), 
+    \end{aligned}
+\end{equation}
+where $u_{tttt}^0 = A \Delta u_{ttt}^0 + \hatA \hatf_u u_{ttt}^0 + \hatA \hatf_{uu} u_t^0 \cdot u_{tt}^0 + \frac16 \hatA (u_t^0)^{\cdot 3}$. 
+Test the above equations with $\bfe_m$, and we can get
+$$E(\tau) u(t^{n-1}) = u(t^{n-1}) + \bfe_m^\top \left(\tau u_t^0 + \tau^2 u_{tt}^0+ \tau^3 u_{ttt}^0+ \tau^4 u_{tttt}^0\right) + O(\tau^5),$$
+where the RHS is only depend on $u(t^{n-1})$. 
+Assume that the exact solution $u$ is smooth enough, and compare it with the Taylor's expansion, 
+we can find that all the low-order terms disappeared, thus the theorem is proved. \qed
+
+After we have proved the consistency, the final convergence theorem is straightforward. 
+
+\begin{theorem}
+    Suppose that the Assumption (P1), (P2), (P3) and (P4) are valid for $k \geq 4$, 
+    and $(b_* \cdot c)^\top A_* c = \frac18 $  
+    works for all $A_* \in \{A_\sigma, \hatA_\sigma\}$, 
+    $b_* \in \{b_\sigma, \hatb_\sigma\}$ if $k=4$.  
+    The exace solution $u$ of equation \eqref{eqn:AC} is sufficiently smooth 
+    on both space and time $u^n$ is the solution of \eqref{eq:RK-implicit-explicit-semilinear}, 
+    then
+    \begin{equation}\label{eq:semilinear-convergence}
+        \|u^{n} - u(t^{n})\| \leq C\tau^{k}.
+    \end{equation}
+
+\end{theorem}
+Prove: 
+\begin{equation}\label{eq:semilinear-convergence-proof}
+    \begin{aligned}
+    \|u^{n} - u(t^{n})\| &= \|E(\tau)u^{n-1} - u(t^{n})\|\\
+    &\leq  \|E(\tau)u^{n-1} - E(\tau)u(t^{n-1})\| + \|E(\tau)u(t^{n-1}) - u(t^{n})\|\\
+    &\leq  (1+C\tau) \|u^{n-1}- u(t^{n-1})\| + C\tau^{k+1} .
+    \end{aligned}
+\end{equation}
+Then Gr\"onwall's inequality will finish the proof. 
+
+\begin{remark}
+    Since this is a single-step method, as what we have done in equation \eqref{eqn:semi-cut}, 
+    we can build a scheme that
+    \begin{equation} \label{eq:semilinear-cutoff}
+        u^{n} =  \min(\max( E(\tau) u^{n-1},-\alpha),\alpha),
+    \end{equation}
+
+    The exact solution will always meet the maximum bound condition, 
+    so $$\|u^{n} - u(t^{n})\| \leq \|E(\tau)u^{n-1} - u(t^{n})\|.$$
+    The rest part of the proof is the same to \eqref{eq:semilinear-convergence-proof}. 
+\end{remark}
+
+\begin{remark}\label{Remark:IMEX-Energy}
+    This analysis is compatible with the work of the paper by Fu and Yang, 
+    in which they proof that 
+    some IMEX-RK scheme can keep energy dissipation law with a stabilizer, 
+    and we have found the scheme of $1$, $2$ and $3$ order, 
+    which means that we have found a third order IMEX-RK scheme that can keep 
+    both maximum bound principle and energy dissipation law.  
+\end{remark}
+

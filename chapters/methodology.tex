@@ -1,0 +1,147 @@
+\chapter{Methodology}
+
+\section{Problem Setting}
+
+In this thesis, we are focusing on the following equation, 
+\begin{equation}\label{eq:parabolic}
+    u_t = \calA u + f,
+\end{equation}
+together with initial and boundary value conditions, 
+where $u:\Omega\times I   \to \bbR$ is a variable. 
+$\Omega \subset \bbR^d$ is the space domain, 
+$d$ is the dimension on space. 
+$I \subset \bbR$ is the time interval. 
+$\calA$ is a differential operator, maybe linear or nonlinear. 
+For simplicity reasons, we fix $I = (0, T)$ throughout the thesis. 
+
+
+\subsection{Allen-Cahn Equation}
+
+We will design and analyze a high-order maximum bound preserving (MBP) scheme for solving the Allen--Cahn equation:
+\begin{equation}\label{eqn:AC}
+    \begin{cases}
+    u_t = \Delta u + f(u) &
+        \mbox{in~~} \Omega\times(0,T),\\
+    u(x,t=0) = u_0(x)   &
+        \mbox{in~~} \Omega\times\{0\},\\
+    \partial_{\mathbf{n}}u = 0  &
+        \mbox{on~~} \partial\Omega\times(0,T)\\
+  \end{cases}
+\end{equation}
+where $\Omega$ is a smooth domain in $\mathbb{R}^d$ with the boundary $\partial\Omega$.
+$f(u)=-F'(u)$ with a double-well potential $F$ that has two wells at $\pm\alpha$, for {some known parameter $\alpha>0$}. %; see Examples \ref{AC:1} and \ref{AC:2}
+For two popular choices of potentials. It is well-known that the Allen--Cahn equation \eqref{eqn:AC} has the maximum bound principle \cite{DuJuLiQiao:2020}:
+\begin{align}\label{eqn:max-AC}
+|u_0(x)|\le \alpha\quad \Longrightarrow\quad |u(x,t)| \le \alpha\qquad \text{for all} ~~(x,t)\in \Omega\times(0,T].
+\end{align}
+As a typical $L^2$ gradient flow associating with the following free energy
+$$E(u)=\int_\Omega\frac{1}{2}|\nabla u|+F(u)\d x,$$
+ the nonlinear energy dissipation law holds in the sense
+\begin{equation}\label{enlaw}\frac{\d}{\d t}E(u)=-\int_\Omega|u_t|^2\d x\le 0.\end{equation}
+
+\section{Single-Step Method}
+
+To solve equation \eqref{eq:parabolic}, 
+we split the interval $(0,T)$ into $N$ subintervals with the uniform mesh size $\tau=T/N$,
+and set $t^n = n\tau$, $n=0,1,\ldots,N$. 
+Define $u^n: \Omega \to \bbR$ as an approximation of $u(t^n)$, 
+and $E(\tau)$ is the solution operator,
+the general form of single-step method can be shown as 
+\begin{equation}\label{eq:single-step}
+    u^n = E(\tau) (u^{n-1}), \quad \text{if}~n \geq 1
+\end{equation}
+\subsection{Postprocessing}
+
+Postprocessings are widely used in the numerical simulations, especially single-step methods, 
+that that we would furtherly modify the result after each time level. 
+This is often because the direct result of numerical simulation 
+is less acceptable for some specific criteria and should be repaired, 
+such that it failed on energy decay property, failed on maximum bound preserving, 
+or failed on mass conservation law, and may cause unstable or singularity. 
+
+In this thesis, it is cut-off that we will mainly use on our approximation. 
+There are some direct reason that we should perform cut-off postprocsessing:
+\begin{itemize}
+    \item[1.] maximum bound preserving; 
+    \item[2.] singularity of the potential term; 
+    \item[3.] Lipschitz continuity. 
+\end{itemize}
+
+
+
+
+
+\section{Runge--Kutta Method}
+
+Consider $f = f(t^n)$ is a time-dependent source term for linear inhomogeneous equation. 
+Runge-Kutta method is a widely used numerical technique for solving ordinary differential equations (ODEs). It is an iterative method that provides an approximate solution to the ODEs by discretizing the problem into smaller subintervals and using a set of formulas to update the solution at each step.
+
+The Runge-Kutta methods come in different orders of accuracy, 
+with the most famous ones being the 4th order Runge-Kutta method 
+(RK4) and the 2nd order Runge-Kutta method (RK2), 
+based on the approximations to related internal points (called stages). 
+Here we will use Implicit Runge--Kutta Methods (Implicit RK) and Implicit-Explicit Runge--Kutta Methods (IMEX-RK) in this work. 
+
+The $m$-stage Implicit RK methods reads as 
+% In particular, at level $n$, with given $u_h^{n-k},\ldots, u_h^{n-1}\in S_h^r$, we find an intermediate solution $\hat u_h^{n}\in S_h^r$ such that
+\begin{equation}\label{eq:RK-implicit}
+    \begin{cases}
+    u^{ni} = u^{n-1} + \tau \sum_{j=1}^m a_{ij} (\calA u^{nj} + f(t^{nj})) &\quad \text{for} ~~i=1,2,\dots,m, \\
+    u^{n} = u^{n-1} + \tau \sum_{i=1}^m b_i (\calA u^{ni} + f(t^{ni})),
+  \end{cases}
+\end{equation}
+and the $m$-stage IMEX-RK methods read as 
+\begin{equation}\label{eq:RK-implicit-explicit}
+    \begin{cases}
+    u^{ni} = u^{n-1} + \tau \sum_{j=0}^m a_{ij} \calA u^{nj} + \tau \sum_{j=0}^m \hata_{ij} f(t^{nj}) &\quad \text{for} ~~i=1,2,\dots,m, \\
+    u^{n} = u^{n-1} + \tau \sum_{i=0}^m b_i \calA u^{ni} + \tau \sum_{i=0}^m \hatb_if(t^{ni}),
+  \end{cases}
+\end{equation}
+
+Ususlly, these coefficients are usually arranged 
+in a mnemonic device, known as a \emph{Butcher tableau}. 
+\begin{table}[h]
+    \begin{center}
+    \begin{tabular}{lll|ll}
+    $a_{11}$  &\ldots &$a_{1m}$ &$c_1$  &  \\
+    \vdots    &       &\vdots   &\vdots &  \\
+    $a_{m1}$  &\ldots &$a_{mm}$ &$c_m$  &  \\ \cline{1-4}
+    $b_{1}$   &\ldots & $b_{m}$ & &
+    \end{tabular}
+    \end{center}
+    \caption{Butcher tableau for Implicit RK scheme.}\label{tab:RK}
+    \end{table}
+    \begin{table}[h]
+        \centering
+        \begin{tabular}[h]{c|ccccc|ccccc}
+            $0$ & $0$ & & & & & $0$ \\
+            $c_1$ & $0$& $a_{11}$ & $0$ & $\dots$ & $0$ & $\hata_{10}$ & $0$ & $\dots$ & $0$& $0$ \\
+            $c_2$ & $0$& $a_{21}$ & $a_{22}$  & $\dots$ & $0$ & $\hata_{20}$ & $\hata_{21}$ & $\dots$ & $0$ & $0$\\
+            $\vdots$ & $0$& $\vdots$ & $\vdots$  & $\ddots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ & $0$\\
+            $c_m$ & $0$& $a_{m1}$ & $a_{m2}$  & $\dots$ & $a_{mm}$ & $\hata_{m0}$ & $\hata_{m1}$ & $\dots$ & $\hata_{m,m-1}$ & $0$\\
+            \hline
+            & $0$& $b_1$ & $b_2$ & $\dots$ & $b_m$ & $\hatb_0$ & $\hatb_1$ & $\dots$ & $\hatb_{m-1}$& $0$
+        \end{tabular}
+        \caption{Butcher tableau for IMEX-RK scheme.}
+        \label{tab:Butcher}
+    \end{table}
+    
+
+\section{Parareal Method}
+
+The Parareal method is a parallel numerical technique designed to efficiently solve time-dependent problems in scientific computing. It was introduced by Yves Robert and Jean-Philippe Pouchet in 2001 to tackle the challenges of long-duration simulations, particularly in fields such as molecular dynamics, quantum chemistry, and fluid dynamics.
+
+
+The Parareal algorithm is based on the idea of parallelizing the solution of a complex problem by dividing it into several smaller subproblems that can be solved independently. It leverages two types of solvers:
+
+{\bf Coarse Solver}: A fast but less accurate solver that provides an approximate solution to the problem over a given time interval.
+
+{\bf Fine Solver}: A more accurate but computationally intensive solver that yields precise solutions when high precision is required.
+
+In parareal method, The time domain of the problem is divided into multiple smaller intervals.
+A coarse solver is used to quickly solve each interval in parallel, starting from the initial conditions, 
+while for each interval, a fine solver recalculates the solution at the end point and corrects the coarse solver's result, providing a correction term. 
+The correction is fed back into the initial conditions of the next interval, and the process is repeated until the desired accuracy is achieved.
+
+The method significantly improves computational efficiency by solving multiple intervals in parallel.
+

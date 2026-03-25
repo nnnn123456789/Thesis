@@ -1,0 +1,520 @@
+\chapter{Appendices}
+
+\section*{Appendix A}\label{sec:appendixA}
+In this part, we sketch a proof for Lemma \ref{lem:RK-local-truncation}.
+\begin{proof}
+We note that the second relation in equation \eqref{eqn:RK-fully-trunc} implies
+\begin{equation*}
+ u(t_{ni}) -   u(t_{n-1}) -\tau\sum_{j=1}^m a_{ij}  u_t^{nj} =
+ \tau \sum_{j=1}^m a_{ij} (\dot u_*^{nj} - u_t(t_{nj}))+
+ \eta_{ni}\quad \text{for} ~~i=1,2,\dots,m.
+\end{equation*}
+Then we substitute the first relation of \eqref{eqn:RK-fully-trunc} and derive that
+for $i=1,2,\dots,m$
+\begin{equation*}
+ u(t_{ni}) -   u(t_{n-1}) -\tau\sum_{j=1}^m a_{ij}  u_t^{nj} =
+ \tau \sum_{j=1}^m a_{ij}   \Big(\sum_{\ell=1}^k L_{\ell}(t_{n-1}+c_j\tau) f(u(t_{n-\ell})) - f(t_{nj})\Big)+
+ \eta_{ni}.
+\end{equation*}
+Define $\tilde\eta_{ni}$ as the left hand side of the above relation. %equation \eqref{eqn:err_splitted}.
+Now we apply Taylor's expansion at $t_{n-1}$  and use \eqref{eqn:stage-order} to derive
+\begin{equation*}
+\begin{aligned}
+\tilde\eta_{ni} =& \sum_{l=1}^{m}\frac{\tau^l}{(l-1)!}\l(\frac{c_i^l}l -
+\sum_{j=1}^ma_{ij}c_j^{l-1}\r)u^{(\ell)}(t_n) +
+\frac1{m!}\int_{t_{n-1}}^{t_{ni}} (t_{ni}-s)^{m} u^{(m+1)}(s) \d s \\
+&+ \frac\tau{(m-1)!}\sum_{j=1}^ma_{ij}\int_{t_{n-1}}^{t_{nj}}
+(t_{nj}-s)^{m-1} u^{(m+1)}(s) \d s\\
+&=\frac1{m!}\int_{t_{n-1}}^{t_{ni}} (t_n-s)^{m} u^{(m+1)}(s) \d s
++ \frac\tau{(m-1)!}\sum_{j=1}^ma_{ij}\int_{t_{n-1}}^{t_{nj}}
+(t_{nj}-s)^{m-1} u^{(m+1)}(s) \d s
+\end{aligned}
+\end{equation*}
+Then we obtain the estimate for $\tilde\eta_{ni}$, with $i=1,2,\dots,m$, that
+\begin{equation*}
+\|\tilde\eta_{ni}\|_{H^1(\Omega)} \leq C\tau^{m+1} \|u^{(m+1)}\|_{C([t_{n-1},t_n];H^1(\Omega))}.
+\end{equation*}
+This together with the approximation property of Lagrange interpolation lead to
+\begin{equation*}
+    \|\eta_{ni}\|_{H^1(\Omega)} \leq C\Big(\tau^{k+1} \| f(u)  \|_{C^{k}([t_{n-k},t_n]; H^1\II)}
+    + \tau^{m+1} \|u\|_{C^{(m+1)}([t_{n-1},t_n];H^1(\Omega))} \Big). %, \quad \text{for} ~~i=1,2,\dots,m.
+\end{equation*}
+for $i=1,2,\dots,m$. Similarly, we have
+\begin{equation*}
+    u(t_{n}) -  u(t_{n-1}) -\tau\sum_{i=1}^m b_i  u_t^{ni} =
+    \tau \sum_{i=1}^m b_i  \Big(\sum_{\ell=1}^k L_{\ell}(t_{n-1}+c_i\tau) f(u(t_{n-\ell})) - f(t_{ni})\Big)  +
+    \eta_{n}.
+\end{equation*}
+Take the left hand side as $\tilde{\eta_n}$. Then Taylor expansion and \eqref{eqn:accuracy} imply
+\begin{equation*}
+\begin{aligned}
+\tilde\eta_{n} =\frac1{p!}\int_{t_{n-1}}^{t_n} (t_n-s)^p u^{(p+1)}(s) \d s
++ \frac\tau{(p-1)!}\sum_{i=1}^mb_i\int_{t_{n-1}}^{t_{ni}}
+(t_{ni}-s)^{p-1} u^{(p+1)}(s) \d s.
+\end{aligned}
+\end{equation*}
+This together with the approximation property of Lagrange interpolation leads to
+\begin{equation*}
+     \|\eta_{ni}\|_{H^1(\Omega)} \leq C\Big(\tau^{k+1} \| f(u)  \|_{C^{k}([t_{n-k},t_n]; H^1\II)}
+    + \tau^{p+1} \|u \|_{C^{p+1}([t_{n-1},t_n];H^1(\Omega))} \Big).
+\end{equation*}
+Using the choice that $k=\min(p, m+1)$, we derive the desired result.
+\end{proof}
+
+
+
+\section{List of IMEX-RK Methods}
+In this part, we present some IMEX-RK schemes that satisfy
+Assumptions (P1)-(P4).
+
+\subsubsection{Example 1: first order IMEX}
+This simple one-step case corresponds to the following IMEX scheme whose tableau reads:
+\begin{table}[h]
+    \centering
+    \begin{tabular}[h]{c|c|c}
+        $1$ & $1$ & $1$\\
+        \hline
+        ~ & $1$ & $1$
+    \end{tabular}
+    \caption{Butcher tableau for first order IMEX-RK}
+\end{table}
+
+This scheme agrees with Remark \ref{Remark:IMEX-Energy}. 
+In this example,
+$$\sigma(\lambda) = \frac{1}{1+\lambda}, \forall \lambda > 0.$$
+
+
+\subsubsection{Example 2: second order IMEX}
+The following Butcher tableau gives us a second order IMEXRK scheme:
+\begin{table}[h]
+    \centering
+    \begin{tabular}[h]{c|cc|cc}
+        $\gamma$ & $\gamma$ & ~ & $\gamma$ & ~\\
+        $1$ & $1- \gamma$ & $\gamma$ & $\delta$ & $1-\delta$\\
+        \hline
+        ~ & $1- \gamma$ & $\gamma$ & $\delta$ & $1-\delta$
+    \end{tabular}
+    \caption{Butcher tableau for second order IMEX-RK}\label{tab:imex2}
+\end{table}
+
+in which $\gamma = 1+\frac{\sqrt{2}}2$, $\delta = 1-\frac1{2\gamma}$.
+This scheme agrees with Remark \ref{Remark:IMEX-Energy}. 
+In this example,
+$$\sigma(\lambda) = \frac{1+(1+\sqrt2)\lambda}{(1+(1+\sqrt2/2)\lambda)^2}, \forall \lambda > 0$$
+
+\subsubsection{Example 3: third order IMEX}
+The following Butcher tableau gives us a third order IMEXRK scheme:
+\begin{table}[h]
+    \centering
+    \begin{tabular}[h]{c|cccc}
+        $3/5$ & $3/5$  \\
+        $3/2$ & $15/32$ & $33/32$    \\
+        $19/20$ & $2/5$ & $-357/640$  &$709/640$ \\
+        $1$ & $2825/756$ & $-232/297$  &$-6400/231$ & $103/4$ \\
+        \hline
+        ~ &  $2825/756$ & $-232/297$  &$-6400/231$ & $103/4$ \\
+    \end{tabular}
+    \begin{tabular}[h]{c|cccc}
+        $3/5$ & $3/5$ \\
+        $3/2$ &  $51/64$ & $45/64$  \\
+        $19/20$ &  $2/5$ & $4841/11520$  & $299/2304$ \\
+        $1$ &  $103/342$ & $125/378$  & $-26/297$ & $2000/4389$\\
+        \hline
+        ~ &  $103/342$ & $125/378$  & $-26/297$ & $2000/4389$\\
+    \end{tabular}
+    \caption{Butcher tableau for third order IMEX-RK}
+\end{table}
+
+This scheme agrees with Remark \ref{Remark:IMEX-Energy}. 
+In this example,
+$$\sigma(\lambda) = \frac{1228800+ 33778560\lambda + 55256268 \lambda^2 + 5250325\lambda^3 }
+{1228800+ 35007360\lambda + 89649228 \lambda^2 + 77600673\lambda^3 +21689019\lambda^4}, \forall \lambda > 0$$
+
+\subsubsection{Example 4: forth order IMEX scheme for linear problem}
+
+ The following Butcher tableau gives us an IMEXRK scheme 
+ which is fourth order for linear problem and third order for semilinear problem:
+ \linespread{1.5}
+ \begin{table}[h]
+     \centering
+     \begin{tabular}[h]{c|cccccc}
+         $\frac{1}{5}$ & $\frac{1}{5}$ \\
+         $\frac{2}{5}$ & $\frac{1}{5}$&$\frac{1}{5}$\\
+         $\frac{3}{5}$ & $\frac{7}{5}$&$-1$&$\frac{1}{5}$\\
+         $\frac{4}{5}$ & $\frac{3989}{1025}$&$-\frac{3343}{1025}$&$-\frac{31}{1025}$&$\frac{1}{5}$\\
+         $1$ & $\frac{79}{120}$&$-\frac{91}{120}$&$\frac{149}{120}$&$-\frac{41}{120}$&$\frac{1}{5}$\\
+         $1$ & $\frac{79}{120}$&$-\frac{91}{120}$&$\frac{149}{120}$&$-\frac{41}{120}$&$0$ &$\frac{1}{5}$\\
+         \hline
+         ~ & $\frac{79}{120}$&$-\frac{91}{120}$&$\frac{149}{120}$&$-\frac{41}{120}$&$0$ &$\frac{1}{5}$\\
+     \end{tabular}
+     \begin{tabular}[h]{c|cccccc}
+         $\frac{1}{5}$ & $\frac{1}{5}$ \\
+         $\frac{2}{5}$ & $\frac{5299}{30120}$&$\frac{1357}{6042}$\\
+         $\frac{3}{5}$ & $\frac{8681383}{58516770}$&$\frac{5413353}{9752795}$&$-\frac{6051439}{58516770}$\\
+         $\frac{4}{5}$ & $0$&$\frac{25905769}{16101930}$&$-\frac{9808291}{16101930}$&$-\frac{10113}{50635}$\\
+         $1$&$0$ & $\frac{79}{120}$&$-\frac{55873}{32520}$&$\frac{96299}{32520}$&$-\frac{5863}{6504}$\\
+         $1$ &$0$ &$\frac{79}{120}$&$-\frac{91}{120}$&$\frac{149}{120}$&$-\frac{41}{120}$ &$\frac{1}{5}$\\
+         \hline
+         ~ &$0$ &$\frac{79}{120}$&$-\frac{91}{120}$&$\frac{149}{120}$&$-\frac{41}{120}$ &$\frac{1}{5}$\\
+     \end{tabular}
+     \caption{{Butcher tableau for fourth order IMEX-RK}}
+ \end{table}
+
+% % 0.199230027598864
+% % 0.332262474162124
+% % 0.461570781849613
+% % 0.157095284449734
+% % -0.150158568060334
+This scheme does not agree with Remark \ref{Remark:IMEX-Energy}. 
+ In this example,
+ $$\sigma(\lambda) = \frac{75000-7500 \lambda^2 +1000\lambda^3 +225 \lambda^4}
+ {24(5+\lambda)^5}, \forall \lambda > 0.$$
+Although there are some negative coefficients in the numerator, it is still positive for all $\lambda \geq 0$.
+
+\subsubsection{Example 5: forth order IMEX scheme for linear and semilinear problem}
+
+ The following Butcher tableau gives us an IMEXRK scheme 
+ which is fourth order for linear and semilinear problem:
+ \linespread{1.5}
+ \begin{table}[h] \label{Tab:IMEX47}
+     \centering
+     \begin{tabular}[h]{c|ccccccc}
+         $\frac{1}{7}$ & $\frac{1}{7}$ \\
+         $\frac{2}{7}$ & $\frac{1}{7}$&$\frac{1}{7}$\\
+         $\frac{11}{25}$ & $\frac{1354}{4375}$&$-\frac{104}{4375}$&$\frac{27}{175}$\\
+         $\frac{4}{5}$ & $a_{41}$&$a_{42}$&$a_{43}$&$\frac{9}{25}$\\
+         $\frac{13}{15}$ & $a_{51}$&$a_{52}$&$a_{53}$&$1$& $\frac{1}{15}$\\
+         $\frac{14}{15}$ & $-\frac{14605}{25536}$&$1$&$\frac{1}{2}$&$\frac{1}{3}$&$-\frac{50399}{127680}$&$\frac{1}{15}$\\
+         $1$&$a_{71}$&$a_{72}$&$a_{73}$&$a_{74}$&$0$& $\frac{1}{15}$& $\frac{1}{15}$\\
+\hline
+        ~&$a_{71}$&$a_{72}$&$a_{73}$&$a_{74}$&$0$& $\frac{1}{15}$& $\frac{1}{15}$\\
+     \end{tabular}
+     \begin{tabular}[h]{c|ccccccc}
+        $\frac{1}{7}$ & $\frac{1}{7}$ \\
+        $\frac{2}{7}$ & $\frac{1}{7}$&$\frac{1}{7}$\\
+        $\frac{11}{25}$ & $-\frac{3229}{8750}$&$1$&$-\frac{1671}{8750}$\\
+        $\frac{4}{5}$  & $-1$ & $\hata_{41}$&$\hata_{42}$&$\hata_{43}$\\
+        $\frac{13}{15}$ & $1$ & $\hata_{51}$&$\hata_{52}$&$\hata_{53}$&$\hata_{54}$\\
+        $\frac{14}{15}$ & $1$ & $\frac12$&$\frac13$&$\hata_{63}$&$\hata_{64}$&$\hata_{65}$\\
+        $1$&$\hata_{70}$&$\hata_{71}$&$\hata_{72}$&$\hata_{73}$&$\hata_{74}$&$\hata_{75}$& $\hata_{76}$\\
+\hline
+~&$\hata_{70}$&$\hata_{71}$&$\hata_{72}$&$\hata_{73}$&$\hata_{74}$&$\hata_{75}$& $\hata_{76}$\\
+\end{tabular}
+     \caption{{Butcher tableau for fourth order IMEX-RK}}
+ \end{table}
+ \begin{table}[h] \label{Tab:coef}
+    \centering
+    \begin{tabular}[h]{|c|c|}
+\hline
+$a_{41}$ & $24058589213/79084733000$ \\
+$a_{42}$ & $299597908/760430125$ \\
+$a_{43}$ & $-23336559/90382552$ \\ \hline
+$a_{51}$ & $-419174425120649204186119/79218920548212919110000$ \\
+$a_{52}$ & $477902525326525491346619/41132901053879784922500$ \\
+$a_{53}$ & $-558440160387285872007719/85556434192069952638800$ \\ \hline
+$a_{71}$ & $4922197/9687600$ \\
+$a_{72}$ & $-2268847/3936600$ \\
+$a_{73}$ & $3238175/4094064$ \\
+$a_{73}$ & $869063/6036120$ \\\hline
+$\hata_{41}$ & $55740853326839983334621/27520768939834456977600$ \\
+$\hata_{42}$ & $-11060173572755944147541/14289630026452506507600$ \\
+$\hata_{43}$ & $2329344893911909455707/4246061493574459076544$ \\ \hline
+$\hata_{51}$ & \scriptsize $-71186087675929044223656193931944384573278473/3438510885083184524462404153200164172975000$ \\
+$\hata_{52}$ & \scriptsize $14268306999047363197901818351205461479990553/399215549486485350905095178799636834225000$ \\
+$\hata_{53}$ & \scriptsize $-164196843957237023227423093901438282094053/11625156801046453418356371606645424612632$ \\
+$\hata_{54}$ &  $-2777877807409624755035963389/2652337211701823798398155000$ \\ \hline
+$\hata_{63}$ &  $-1478910748534537278959/506708836650241118208$ \\
+$\hata_{64}$ &  $29121578321788444001/11310465103800024960$ \\
+$\hata_{65}$ &  $-10436070861733408099/18766993950008930304$ \\ \hline
+$\hata_{70}$ &  $-12432250836521654063395/85826994234468729923442$ \\
+$\hata_{71}$ &  $8194496564065915317284063497/9238417659398214088959296880$ \\
+$\hata_{72}$ &  $-2996905844557888599918137227/3754072727815662246851353080$ \\
+$\hata_{73}$ &  $13920174158309482913767468375/19521178184641443683627036016$ \\
+$\hata_{74}$ &  $1389846140555607156290661143/5756244849317348778505408056$ \\ 
+$\hata_{75}$ &  $84635598876295853750/14304499039078121653907$ \\ 
+$\hata_{76}$ &  $1369093183594155319761/14304499039078121653907$ \\ \hline
+\end{tabular}
+    \caption{related coefficients in Table \ref{Tab:IMEX47}}
+\end{table}
+
+Related coefficients are listed in Table \ref{Tab:coef}. 
+This scheme does not agree with Remark \ref{Remark:IMEX-Energy}. 
+ In this example,
+\begin{align*}
+\sigma(\lambda) = &-\Big(- 18533185137819\lambda^5 + 245682733504208\lambda^4 - 1917903570331840\lambda^3 \\
+&+ 4891758175886400\lambda^2 + 9437315024592000\lambda - 61167782566800000\Big)\\
+&/\Big(14794928512(9\lambda + 25)(\lambda + 7)^2(\lambda + 15)^3\Big) , \forall \lambda > 0.
+\end{align*}
+Although there are some negative coefficients in the numerator, it is still positive for all $\lambda \geq 0$.
+
+\subsubsection{Find IMEX--RK Scheme}
+
+In this part we make a short introduction to how we find the table of IMEX-RK.
+
+Searching the table is based on undetermined coefficient method.
+To this end, our purpose is to find a $k$-th order scheme.
+First we need to know is that, for a $m$-stage IMEX--RK table, the total degree of freedoms is about $m^2$,
+but the requirements of stage order is about $2^k$,
+because the replacement of $b, \hatb$ and $A, \hatA$ should keep the requirements,
+which means that the number of stages will be far more than the scheme order.
+
+However, when we focus on the implicit table $A$ itself, the scheme is reduced to a diagonal implicit Runge--Kutta (DIRK)
+scheme, and the replacement conditions of $b, \hatb$ and $A, \hatA$ is no need to be kept, so the total number of requirements is now algebraic to $k$.
+We can fix a small $m$ and find a small $A$ to the DIRK scheme.This is not hard.
+
+In fact, we have plenty of degree of freedoms during finding the DIRK table,
+so we can fix $c_i$ first because it is high order in the stage order requirements.
+We can also make the diagonal terms in $A$ same, so that the solvers are same in each stages.
+If we have other requirements to $A$, like $\sigma(\lambda)>0$,
+we can search among the rest degree of freedoms.
+
+After a first $A$ is generated in a small size, we will solve $\hatA$ now.
+The current number of stages may be not enough for meeting all the stages orders,
+so we should add some stages.
+We do not need to hesitate whether too much stages are added, because that the number of stages is always far more than the scheme order for high order schemes.
+
+The adding of stages is just repeat the last stage in the implicit table $A$, like what we have done in the above forth order scheme.
+We can see that the last two stages of the implicit table is almost the same, with only an extra $0$.
+With focus on DIRK scheme, this has nothing change and the stage order is also kept,
+but it gives us extra degree of freedoms so we can solve a larger system.
+One can also find that the $b$ and $\hatb$ are also similar.
+In fact $b_\sigma$ and $\hatb_\sigma$ are also same except the swap of last two terms.
+Either of the last two terms refers to $c_i=1$ so the swapping works.
+
+Here the last and the hardest task is search $\hata$, this can be accessed by undetermined coefficient method.
+We should add an extra stage if the equation is not solvable, the degree of freedom is not enough,
+and an extra stage, again and again until we can find the table.
+We guess perhaps there exist arbitrary high order IMEX-RK schemes.
+
+So the search has the following steps:
+\begin{itemize}
+    \item[{\bf Step 1:}] Give $c$ manually.
+    \item[{\bf Step 2:}] Solve $b$ and $A$ for DIRK scheme with a small number of stages $m$. For requirements to $A$, do it here.
+    \item[{\bf Step 3:}] Calculate $\hatb$ or keep $b$ as $\hatb$.
+    \item[{\bf Step 4:}] Try to solve $\hatA$ from the stage order requirements with undetermined coefficient method. Output the tables.
+    \item[{\bf Step 5:}] If the equations are not solvable, add $m$, go to Step 3.
+\end{itemize}
+
+
+
+
+\section{Proof of Parareal Stability to Runge--Kutta Methods}
+In this part, we provide detailed proof of proposition \ref{prop:lobatto-34}.
+
+\subsection*{Proof for the 3-stage Lobatto IIIC scheme \eqref{3-stage}}
+Similar to the proof of proposition \ref{prop:lobatto-2}, we aim to show that for any $J\ge 2$
+\begin{equation}\label{eqn:lobatto-3}
+    \sup_{s\in(0,\infty)}  \left|\frac{(1+s) r(-s/J)^J-1}{s}\right| \le 0.31,
+    \quad
+    \text{where}~~ r(-s) = \frac{24-6s}{s^3 + 6s^2 + 18s + 24}.
+\end{equation}
+Letting $\alpha = 0.69$ and $\beta=1.02$,
+Lemmas \ref{lem:exp} and \ref{lem:exp-102} implies that
+$\kappa_\alpha \le 1-0.69 = 0.31$ and $\kappa_\beta \le 0.31$, respectively.
+
+Next, we show the claim that $e^{-\beta s} \le r(-s) \le e^{-\alpha s}$ for all $s\in(0,s_*)$ with $s_*=2$. To begin with, we shall prove that $r(-s) > e^{-\beta s}$ for all $s\in(0,\infty)$, which is equivalent to
+$$\psi(s) = e^{\beta s} (-6s+24) - (s^3+6s^2+18s+24) >0
+\quad \forall ~s\in (0, s_*).$$
+We note that
+$$\psi^{(4)}(s) = 6\beta^3e^{\beta s}(-\beta s + 4\beta - 4).$$
+has a unique root in $(0,\infty)$, namely
+$s_0= \frac{4\beta - 4}{\beta} \approx0.0784$, and hence
+$\psi^{(4)}(s)> 0$ for all $s\in(0,s_0)$.
+Besides, we observe that
+$\psi^{(3)}(0) = 0.742 >0$, $\psi^{(3)}(s_0) \approx 0.762 >0$.
+Therefore $\psi^{(3)}(s)$ has a unique root
+in $(s_0, +\infty)$,
+denoted as $s_1$. By means of the fixed point iteration, we know that
+$s_1\approx 0.4832$.
+Similarly, since $\psi''(0) =  0.730>0$ and $\psi''(s_1) =  1.00>0$, we conclude that $\psi''(s)$ is always positive in $[0,s_1]$ and it
+has a unique root $s_2\in (s_1,\infty)$, and we find $s_2\approx 0.9980$.
+Repeating the argument, we are able to show that
+$\psi'(s)$ keeps positive in $[0,s_2]$ and
+the unique root in $(s_2,\infty)$ locates at
+$s_3 \approx 1.5344$.
+Finally, we observe that $\psi(0) = 0$ and $\psi(s_3) \approx 1.401>0$, so $\psi$ is positive in $(0,s_3]$
+and it admits a unique root at $s_4\in(s_3,\infty)$.
+Noting that $\psi(s_*) \approx 0.2873 > 0$,
+we conclude that $r(-s) > e^{-\beta s}$ for all $s\in(0,s_0)$.
+
+Next we will show that $r(-s) < e^{-\alpha s}$ in $(0, s_*)$, which is equivalent to show
+\begin{equation*}
+    \varphi(s) = e^{\alpha s} (-6s+24) - (s^3+6s^2+18s+24) < 0 \quad \text{for all} ~s\in (0, s_*).
+\end{equation*}
+We note the fact that
+\begin{equation*}
+\varphi^{(4)}(s) = 6\alpha^3e^{\alpha s}(-\alpha s + 4\alpha - 4)<0\quad \text{for all} ~s\in (0, \infty).
+\end{equation*}
+Meanwhile, we have $\varphi^{(4)}(0)<0$, $\varphi^{(3)}(0)<0$, $\varphi''(0)<0$, $\varphi'(0)<0$, and $\varphi(0)<0$.
+Those together imply $\varphi(s) <0$ for any
+$s\in (0, \infty)$. Therefore $r(-s) < e^{-\alpha s}$.
+
+As a result, for any $J\ge 2$, we arrive at $e^{-\beta s} \le r(-s/J)^J \le e^{-\alpha s}$
+for all $s\in(0, J s_*)$, that further implies the estimate
+\begin{equation*}
+    \sup_{s\in(0, J s_*)}
+    \left|\frac{(1+s) r(-s/J)^J-1}{s}\right| \le 0.31.
+\end{equation*}
+
+Next, we aim to prove the claim that
+\begin{equation}\label{claim:bound-3}
+   \sup\limits_{(s_*, \infty)}
+   \big|r(-s)\big| = \sup\limits_{(s_*, \infty)}
+   \Big|\frac{24-6s}{s^3 + 6s^2 + 18s + 24}\Big|
+   \le  0.15.
+\end{equation}
+To begin with, we show that $\frac{\d}{\d s}r(-s)$ admits a unique root in $(2, \infty)$. % ,  denoted as $s_5$.
+We note that
+$$\frac{\d}{\d s}r(-s) = \frac{12(s^3-3s^2-24s-48)}
+{(s^3 + 6s^2 + 18s + 24)^2}.$$
+and hence it is sufficient to show that
+$\eta(s) = s^3-3s^2-24s-48$
+has a unique root in $(2, \infty)$.
+Since $\eta'(s)$ has two roots, $-2$ and $4$,
+and $\eta(-2)=-20<0$, $\eta(4)=-128<0$,
+we conclude that $\eta(s) <0$ for all $s\in[-2,4]$, and
+$\eta(s)$ admits a unique root in $(4, \infty)$,
+namely $s_5 \approx 7.235$. %7.234531027367
+Therefore $r(-s)$ is decreasing in $(s_*,s_5)$
+and increasing in $[s_5,\infty)$.
+Noting that fact that $r(-s_*) \approx 0.130$,
+$r(-s_5)\approx -0.0229$ and $r(-\infty)=0$, we obtian
+$
+    \sup\limits_{(s_*, \infty)}
+    \big|r(-s)\big| = \big|r(-s_*)\big|
+    \le  0.15.
+$
+
+Therefore, we derive for $s\in (Js_*,\infty)$ and $J\ge 2$
+\begin{equation*}
+\begin{split}
+    \left|\frac{(1+s) r(-s/J)^J-1}{s}\right|
+    &\le \frac{1+s}{s}|r(-s/J)^J|+s^{-1}
+    \le \frac{1+Js_*}{Js_*} (0.15)^J + (Js_*)^{-1}    \\
+    &\le  \frac{5}{4} (0.02)^2 + 4^{-1}
+    \approx 0.251 \le 0.31.
+\end{split}
+\end{equation*}
+This completes the proof of \eqref{eqn:lobatto-3} as well as the proposition.
+\qed
+
+\subsection*{Proof for the 4-stage Lobatto IIIC scheme \eqref{4-stage}}
+Similar to the proof of Proposition \ref{prop:lobatto-2}, we aim to show that for any $J\ge 2$
+\begin{equation}\label{eqn:lobatto-4}
+    \sup_{s\in(0,\infty)}  \left|\frac{(1+s) r(-s/J)^J-1}{s}\right| \le 0.31,
+    ~~
+    \text{where}~~ r(-s) =
+    \frac{12s^2-120s+360}{s^4+12s^3+72s^2 + 240s + 360}.
+\end{equation}
+Letting $\alpha = 0.69$ and $\beta=1.02$,
+Lemmas \ref{lem:exp} and \ref{lem:exp-102} implies that
+$\kappa_\alpha \le 1-0.69 = 0.31$ and $\kappa_\beta \le 0.31$, respectively. Next, we show the claim that
+\begin{equation}\label{claim:sand}
+    e^{-\beta s} \le r(-s) \le e^{-\alpha s}~~ \text{for all}~~s\in(0,s_*)~~ \text{with}~s_*=6.8.
+\end{equation}
+
+To begin with, we show that, for $s\in(0,\infty)$, $r(-s) \ge e^{-\beta s}$, which is equivalent to
+$$\psi(s) = (12s^2-120s+360)e^{\beta s} -(s^4+12s^3+72s^2 + 240s + 360)
+ \ge 0.$$
+Define $h(s) = \beta^2s^2 + (10\beta-10\beta^2)s+(30\beta^2-50\beta+20)$,
+then we have
+$$\psi^{(5)}(s) = 12\beta^3e^{\beta s}
+\left[\beta^2s^2 + (10\beta-10\beta^2)s+(30\beta^2-50\beta+20)\right]
+=12\beta^3e^{\beta s}h(s).$$
+Here $h(s)$ is a quadratic polynomial, whose
+minimum locates at $\frac{5\beta-5}{\beta}$.
+Therefore $h(s) \geq h (\tfrac{5\beta-5}{\beta} ) > 0$.
+Then $\psi^{(5)}(s) = 12\beta^2e^{\beta x}h(s)-24 > 12\times 2-24>0$.
+Meanwhile, simple computation yields
+$$ \psi(0)=0 \qquad \text{and}
+\qquad \psi^{(k)}(0)>0~~\quad \text{with}~~ \quad
+1\le k\le 5.  $$
+Then we conclude that  $\psi(s) > 0$ for all  $s\in (0, \infty)$, and hence
+ $r(-s) \ge e^{-\beta s}$ in $(0, \infty)$.
+
+Next we show the bound that $r(s) \le e^{-\alpha s}$ for $s\in (0,s_*)$, which is equivalent to show
+$$\varphi(s) = (12s^2-120s+360)e^{\alpha s}
+-(s^4+12s^3+72s^2 + 240s + 360) \le 0 \qquad \forall~s\in (0,s_*).$$
+Similar to the preceding argument, let $g(s) = (20-50 \alpha + 30 \alpha^2  +10\alpha s -10\alpha^2s +\alpha^2s^2)$. Then
+$$  \varphi^{(5)}(s) = 12\alpha^3e^{\alpha s}
+(20-50 \alpha + 30 \alpha^2
++10\alpha s -10\alpha^2s +\alpha^2s^2)
+= 12\alpha^3e^{\alpha s}  g(s). $$
+Here $g$ is a quadratic polynomial with minimum at $\frac{5\alpha-5}{\alpha}$. Therefore, $g(s)\ge g(\tfrac{5\alpha-5}{\alpha}) \approx -2.62$.
+Meanwhile, we observe that $g(0) = -0.217 <0$, so
+there is a unique root of $g$ in $(0, \infty)$.
+It is easy to find that, by means of the fixed point iteration,
+that root locates at $s_0\approx0.0993$. Then $\varphi^{(5)}(s) \le 0$
+for all $s\in [0,s_0]$ and $\varphi^{(5)}(s) \ge 0$ for $s\in (s_0,\infty)$. Noting that $\varphi^{(4)}(s_0) < 0$ and $\varphi^{(4)}(0) < 0$, so $\varphi^{(4)}(s) < 0$ in $[0,s_0]$ and $\varphi^{(4)}$ admits a unique root in $(s_0,\infty)$, named as $s_1$.
+Then the fixed point iteration implies $s_1\approx  1.6849$.
+Repeating this argument, we are able to show that
+$\varphi^{(3)}(s) < 0$ in $[0,s_1]$ and $\varphi^{(3)}$ has a unique root $(s_1,\infty)$, namely $s_2\approx 3.0558$.
+Then we derive that
+$\varphi{''}(s) < 0$ in $[0,s_2]$ and  $\varphi{''}(s)$
+has a unique root in $(s_2,\infty)$,
+denoted as $s_3\approx 4.3640$.
+Similarly, $\varphi{'}(s) < 0$ in $[0,s_3]$ and  $\varphi{'}(s)$
+has a unique root in $(s_3,\infty)$, named as $s_4\approx 5.6285$.
+Finally, since $\psi(0)=0$ and $\varphi(s_4)<0$, we conclude that
+$\varphi(s)<0$ in $(0,s_4]$, and $\varphi(s)$ has a unique root in $(s_4,\infty)$. Then the fact that $\varphi(s_*) \approx -447.65<0$ implies $\varphi(s)<0$ in $(0,s_*)$.
+This completes the proof of the claim \eqref{claim:sand}.
+As a result, for any $J\ge 2$, we arrive at $e^{-\beta s} \le r(-s/J)^J \le e^{-\alpha s}$
+for all $s\in(0, J s_*)$ which  implies
+\begin{equation*}
+    \sup_{s\in(0, J s_*)}
+    \left|\frac{(1+s) r(-s/J)^J-1}{s}\right| \le 0.31.
+\end{equation*}
+
+Next, we intend to show the claim that
+\begin{equation}\label{claim:bound-4}
+ \sup\limits_{(s_*, \infty)}
+   \big|r(-s)\big| =   \sup\limits_{(s_*, \infty)}  \big|\frac{12s^2-120s+360}{s^4+12s^3+72s^2 + 240s + 360}\Big| \le  0.02.
+\end{equation}
+In order to establish a bound for the supremum, we note
+$$\frac{d}{ds}r(-s)
+= \frac{-24s^5+216s^4+1440s^3-1440s^2-43200s-129600}
+{(s^4+12s^3+72s^2 + 240s + 360)^2}, $$
+and we will show that it admits a unique root in $(s_*, \infty)$,
+denoted by $s_5$. Noting that, with
+$\mu(s) = -s^5+9s^4+60s^3-60s^2-1800s-5400, $
+we have
+$$\frac{d}{ds}r(-s) = \frac{24\mu(s)}{(s^4+12s^3+72s^2 + 240s + 360)^2}.$$
+So it suffices to show that $\mu(s)$ admits a unique  root in $(s_*, \infty)$. Since
+$\mu^{(3)}(s)=-60s^2+216s+360,$ being a quadratic polynomial,
+it gains the maximum at $1.8$ where
+$\mu^{(3)}(1.8) = 554.4>0$.
+Noting that $s_*>1.8$ and $\mu^{(3)}(s_*)=-945.6<0$,
+we conclude that $\mu^{(3)}(s)<0$ for all $s\in(s_*, \infty)$.
+Moreover, since $\mu''(s_*) \approx 1033.3 >0$ and $\mu''(\infty) =-\infty$, $\mu''(s)$ admits a unique root $s_6\approx 7.6503 \in (s_*, \infty)$. Then we know that $\mu''(s) > 0$ in $(s_*, s_6)$
+and $\mu''(s) < 0$ in $(s_6, \infty)$.
+Similarly, we have $\mu'(s_*) >0$ and $\mu'(s_6) >0$,
+so  $\mu'(s) > 0$ in $[s_*, s_6]$. This together with the fact  $\mu'(\infty) <0$ implies that
+$\mu'(s)$ has a unique root $s_7\approx 10.166 \in (s_6, \infty)$.
+Finally, using the facts that $\mu(s_*)>0$ and $\mu(s_7)>0$,
+we know $\mu(s) >0 $ in  $(s_*, s_7)$ and
+ $\mu(s)$ has a unique root $s_8 \approx 12.28 \in (s_7, \infty)$.
+Therefore $r(-s)$ is increasing in $(s_*, s_8)$,
+and decreasing in $(s_8, \infty)$.
+Noting that $r(-s)\approx 0.0088$, $r(-s_8)\approx 0.0118$, and $r(-\infty)=0$, we arrive at
+$\sup\limits_{(s_*, \infty)}
+\big|r(-s)\big| \le 0.02.$
+
+
+As a result, the estimate \eqref{claim:bound-4} implies that
+for $s\in (Js_*,\infty)$ and $J\ge 2$
+\begin{equation*}
+\begin{split}
+    \left|\frac{(1+s) r(-s/J)^J-1}{s}\right|
+    &\le \frac{1+s}{s}|r(-s/J)^J|+s^{-1}
+    \le \frac{1+Js_*}{Js_*} (0.02)^J + (Js_*)^{-1}    \\
+    &\le  \frac{14.6}{13.6} (0.02)^2 + 13.6^{-1}
+    \approx 0.074 \le 0.31.
+\end{split}
+\end{equation*}
+This completes the proof of \eqref{eqn:lobatto-4} as well as the proposition.
+\qed
+
+
+
+% \bibliographystyle{siam}
+
